@@ -1,0 +1,27 @@
+---
+title: "SOC-5811 Week 2"
+author: "Nick Graetz"
+date: "9/3/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Title}
+
+>- List
+>    - \textbf{Chapter 1.} List
+>    - \textbf{Chapter 2.} List
+>    - \textbf{Chapter 3.} List
+
+---

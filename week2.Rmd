@@ -1,0 +1,267 @@
+---
+title: "SOC-5811 Week 2: Quantitative research methods"
+author: "Nick Graetz"
+date: "9/10/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+## Libraries
+library(tidyverse)
+library(data.table)
+library(ggplot2)
+library(haven)
+library(formatR)
+library(marginaleffects)
+library(sjlabelled)
+library(arrow)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE
+)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+data_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/data/')
+```
+
+---
+
+\frametitle{Quantitative methods}
+
+* Empiricism: social theories imply empirical claims that are falsifiable.
+
+* Data doesn't speak for itself; it must be carefully interpreted, summarize, and analyzed.
+
+---
+
+\frametitle{Quantitative methods}
+
+* Statistics is about providing a concise summary of empirical data.
+
+* This involves analyzing \textbf{samples} drawn from \textbf{populations}.
+
+---
+
+\frametitle{Samples and populations}
+
+Say I have a bag filled with 50 marbles of different colors. I reach in the bag and pull out 10 marbles. I see that 6 marbles are blue and 4 are red.
+
+What is the population and sample here?
+
+What can I say about the sample? What can I say about the population?
+
+---
+
+\frametitle{Generalization}
+
+\textbf{Summarizing in-sample}
+
+>- \textbf{Generalizing from sample to population}.
+>   - Is what I see in the sample also true in the population?
+>   - *I ask 30 people whether they graduated from college; what can I say about the population from which I sampled these people?*
+
+>- \textbf{Measurement}: generalizing from \textbf{observed measurements} to the \textbf{underlying constructs of interest}.
+>   - Is what I'm measuring what I actually care about?
+>   - *I ask 30 people whether they graduated from college; what am I measuring?*
+>   - Measurement theory: very central to psychology, education, etc. 
+
+---
+
+\textbf{Generalization}
+
+>- \textbf{Forecasting}: generalizing from the present to the future.
+>   - *I have data on whether on not it has rained every day for the past ten years. Will it rain tomorrow?*
+
+>- \textbf{Causal inference}: generalizing from treatment group to control group.
+>   - *I measure the rate of a specific disease among a group that was vaccinated for that disease and one that was not. Was the vaccine effective at reducing the disease?*
+
+---
+
+\frametitle{Generalization: Summary}
+
+1. Generalizing from sample to population.
+2. Measurement.
+3. Forecasting.
+4. Causal inference.
+
+---
+
+\frametitle{Quantitative data}
+
+\small
+```{r, echo=FALSE}
+census <- read_dta(paste0(data_dir,
+                          's5811-msa.dta')) %>% 
+  mutate(across(c(state,region,isusa), as_label))
+## head/tabulate
+census %>% head()
+```
+
+---
+
+\frametitle{Quantitative data}
+
+\small
+```{r, echo=FALSE}
+## continuous/discrete variables
+census %>% select(population,region) %>% slice(1:5)
+```
+
+---
+
+\frametitle{Levels of measurement}
+
+>- \textbf{Continuous variables:} infinite number of values in a given interval (e.g., time)
+
+>- \textbf{Discrete variables:} limited to a specific set of outcomes (e.g., die roll)
+>   - Ordinal: ordered, discrete categories (e.g., ranks in a race)
+>   - Nominal: unordered, discrete categories (e.g., field of study)
+>   - Binary/dichotomous: special case of nominal variable that only has two values (e.g., coin flip)
+
+>- Measurement decisions are not always clear cut (e.g., age)
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=FALSE}
+gss <- read_dta(paste0(data_dir,
+                       'GSS2018.dta')) %>% 
+  select(degree,agekdbrn,realrinc,race,age,prestg10,educ,happy) %>%
+  mutate(across(c(degree,race,happy), as_label))
+
+gss %>% head()
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=FALSE}
+plot_data <- gss %>%
+  group_by(degree) %>% 
+  summarise(n=n()) %>%
+  mutate(prop=n/sum(n)*100)
+
+ggplot(data=plot_data,
+       aes(x=degree,y=prop)) + 
+  geom_bar(stat='identity') +
+  labs(x='Degree',y='Percent') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=FALSE}
+ggplot(data=gss,
+       aes(x=realrinc)) + 
+  geom_histogram() +
+  labs(x='Income',y='Count') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Summarizing data}
+
+* Histograms of continuous data: why do we have to bin?
+
+* How do we choose bins?
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=FALSE}
+ggplot(data=gss,
+       aes(x=realrinc)) + 
+  geom_density() + 
+  labs(x='Income',y='Density') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=FALSE}
+ggplot(data=gss,
+       aes(x=realrinc)) + 
+  geom_density() + 
+  geom_vline(xintercept = mean(gss$realrinc,na.rm=T), color='red', size=1, linetype='dashed') + 
+  geom_vline(xintercept = median(gss$realrinc,na.rm=T), color='blue', size=1, linetype='dashed') +
+  labs(x='Income',y='Density') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Univariate summary statistics}
+
+\small
+```{r, echo=FALSE}
+ggplot(data=gss,
+       aes(y=realrinc,x=degree)) + 
+  geom_boxplot() + 
+  labs(x='Degree',y='Income') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Bivariate relationships}
+
+\small
+```{r, echo=FALSE}
+ggplot(data=gss,
+       aes(x=educ,y=prestg10)) + 
+  geom_point() + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Bivariate relationships}
+
+\small
+```{r, echo=FALSE}
+gss %>% 
+  select(educ,prestg10,realrinc,agekdbrn) %>%
+  cor(use = 'complete.obs') %>% 
+  round(2)
+```
+
+---
+
+\frametitle{Bivariate relationships}
+
+\small
+```{r, echo=FALSE}
+gss %>% 
+  select(degree,race) %>%
+  table() %>% 
+  prop.table() %>%
+  round(2)
+```
+
+---
+
+\frametitle{Stats and social science theory}
+
+How do we create models?
+
+>- Deterministic processes
+>- Stochastic processes

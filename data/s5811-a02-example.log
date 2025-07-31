@@ -1,0 +1,300 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  g:\Shared drives\Sociology5811-F24\Resources\Data\s5811-a02-example
+> .log
+  log type:  text
+ opened on:  16 Sep 2024, 14:15:22
+
+. version 15.1
+
+. clear all
+
+. matrix drop _all
+
+. set linesize 80
+
+. 
+. //  program: s5811-a02-example
+. //  task:       Example for getting through assignment 2
+. //  project:   s5811 fall 2023
+. //  author:    Tom VanHeuvelen 2023 09
+. 
+. ******************************************************************************
+. //  Question 1. Load data
+. ******************************************************************************
+. 
+. * use this command to open a dataset
+. use s5811-nes-example.dta, clear
+
+. 
+. * below I use the "describe" command to get a general sense of the data
+. describe
+
+Contains data from s5811-nes-example.dta
+ Observations:         2,487                  
+    Variables:            46                  7 Sep 2022 19:40
+--------------------------------------------------------------------------------
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+--------------------------------------------------------------------------------
+prebush         byte    %13.0g     feel     * Rate Bush pre-92 election.
+preclint        byte    %13.0g     feel     * Rate Clinton pre-92 election.
+preperot        byte    %13.0g     feel     * Rate Perot pre-92 election.
+partyid         byte    %23.0g     partyid    Party ID.
+abortion        byte    %38.0g     abortion   View on abortion.
+election        byte    %9.0g      election   Who will you vote for?
+religion        byte    %12.0g     religion   Religious affiliation.
+age             byte    %9.0g                 Age.
+marital         byte    %28.0g     marital    Marital status.
+educatio        byte    %20.0g     educatio   Education level.
+occup           byte    %39.0g     occup      Occupation code.
+fincome         byte    %19.0g     fincome    Family income.
+sex             byte    %9.0g      sex        Sex.
+race            byte    %25.0g     race       Race.
+caseid          int     %9.0g                 
+postbush        byte    %13.0g     feel     * Rate Bush post-92 election.
+postclin        byte    %13.0g     feel     * Rate Clinton post-92 election.
+postpero        byte    %13.0g     feel     * Rate Perot post-92 election.
+didvote         byte    %14.0g     yesno1     Did you vote in Nov?
+regvote         byte    %14.0g     yesno1     Were you registered to vote?
+presvote        byte    %9.0g      prez       Who did you vote for?
+prefvote        byte    %9.0g      prez       Didn't vote, but preferred.
+campaign        byte    %9.0g      yesno2     Talked to people about voting.
+contact         byte    %9.0g      yesno2     Contacted about voting for cand.
+support         byte    %9.0g      yesno2     Displayed button, stickers, etc.
+attend          byte    %9.0g      yesno2     Attended political meeting, etc.
+enlist          byte    %9.0g      yesno2     Enlisted to attend meeting, etc.
+partywrk        byte    %9.0g      yesno2     Worked for party.
+askwork         byte    %9.0g      yesno2     Asked to work for party.
+taxretur        byte    %9.0g      yesno2     Claimed $ on tax return.
+fundcam         byte    %9.0g      yesno2     Gave $ to candidate.
+canparty        byte    %12.0g     yesno2     Party of cand gave $ to.
+fundpart        byte    %9.0g      yesno2     Gave $ to party.
+whichpar        byte    %12.0g     yesno2     Gave $ to which party.
+fundgrp         byte    %9.0g      yesno2     Gave $ to group.
+contvote        byte    %9.0g      yesno2     Contacted about voting.
+mailfund        byte    %9.0g      yesno2     Recieved mail request for $.
+alotmail        byte    %15.0g     freq       How may mail requests for $.
+contmail        byte    %9.0g      yesno2     Gave b/c of mail request.
+phonfund        byte    %9.0g      yesno2     Recieved phone request for $.
+alotphon        byte    %15.0g     freq       How many phone requests for $.
+contphon        byte    %9.0g      yesno2     Gave b/c of phone request.
+persfund        byte    %9.0g      yesno2     Recieved personal request $.
+persalot        byte    %15.0g     freq       How many personal requests $.
+contpers        byte    %9.0g      yesno2     Gave b/c of personal request.
+isfemale        byte    %9.0g      isfemale   R is female
+                                            * indicated variables have notes
+--------------------------------------------------------------------------------
+Sorted by: 
+
+. 
+. ******************************************************************************
+. //  Question 2. A conceptual question. Nothing to do with Stata
+. ******************************************************************************
+. 
+. ******************************************************************************
+. //  Question 3. Summarize
+. ******************************************************************************
+. 
+. * "summarize", or the shortened "sum", is the command that provides 
+. * descriptive statistics
+. 
+. sum age fincome ibn.race
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         age |      2,487    45.74186    17.71135         17         91
+     fincome |      2,286    14.23053    6.750493          1         77
+             |
+        race |
+    1_White  |      2,452    .8466558    .3603925          0          1
+    2_Black  |      2,452      .12969    .3360306          0          1
+3_America..  |      2,452    .0101958    .1004785          0          1
+-------------+---------------------------------------------------------
+4_Asian/P..  |      2,452    .0134584    .1152506          0          1
+
+. 
+. ******************************************************************************
+. // Question 4. Tabulation
+. ******************************************************************************
+. 
+. * "tabulate," or "tab" for short, tabulates variables. 
+. * If you do something like, "tab var1 var2", you'll get a cross-tabulation.
+. * If you do something like, "tab1 var1 var2 ... varx", you'll get a series
+. * of one-way tabulations
+. 
+. tab1 partyid religion didvote
+
+-> tabulation of partyid  
+
+              Party ID. |      Freq.     Percent        Cum.
+------------------------+-----------------------------------
+           0_strong Dem |        444       18.12       18.12
+             1_weak Dem |        432       17.63       35.74
+  2_Indep-closer to Dem |        354       14.44       50.18
+                3_Indep |        287       11.71       61.89
+4_Indep-closer to Repub |        305       12.44       74.34
+           5_weak Repub |        349       14.24       88.58
+         6_strong Repub |        275       11.22       99.80
+          7_other party |          5        0.20      100.00
+------------------------+-----------------------------------
+                  Total |      2,451      100.00
+
+-> tabulation of religion  
+
+   Religious |
+affiliation. |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+1_Protestant |      1,171       58.20       58.20
+  2_Catholic |        549       27.29       85.49
+    3_Jewish |         44        2.19       87.67
+     4_Other |        248       12.33      100.00
+-------------+-----------------------------------
+       Total |      2,012      100.00
+
+-> tabulation of didvote  
+
+  Did you vote |
+       in Nov? |      Freq.     Percent        Cum.
+---------------+-----------------------------------
+         1_yes |      1,700       75.42       75.42
+          5_no |        554       24.58      100.00
+---------------+-----------------------------------
+         Total |      2,254      100.00
+
+. 
+. * get tabular information of sex
+. tab isfemale
+
+R is female |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       Male |      1,159       46.60       46.60
+     Female |      1,328       53.40      100.00
+------------+-----------------------------------
+      Total |      2,487      100.00
+
+. * summarize sex, see mean
+. sum isfemale
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+    isfemale |      2,487    .5339767    .4989446          0          1
+
+. 
+. ******************************************************************************
+. // Question 5. Get mean and variance of variable
+. ******************************************************************************
+. 
+. * one way is to get summary statistics, square standard deviation to get varia
+> nce
+. sum preclint
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+    preclint |      2,418    56.09553    24.43092          0        100
+
+. 
+. * or, you could include option ", detail" to see variance
+. sum preclint, det
+
+                Rate Clinton pre-92 election.
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%           10              0
+10%           20              0       Obs               2,418
+25%           40              0       Sum of wgt.       2,418
+
+50%           60                      Mean           56.09553
+                        Largest       Std. dev.      24.43092
+75%           70            100
+90%           85            100       Variance       596.8701
+95%           95            100       Skewness      -.4337542
+99%          100            100       Kurtosis       2.788945
+
+. 
+. * by group:
+. sum preclint if isfemale == 0, det
+
+                Rate Clinton pre-92 election.
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%           15              0       Obs               1,140
+25%           40              0       Sum of wgt.       1,140
+
+50%           60                      Mean           54.35965
+                        Largest       Std. dev.      24.10131
+75%           70            100
+90%           85            100       Variance       580.8732
+95%           85            100       Skewness      -.4243457
+99%          100            100       Kurtosis       2.779468
+
+. sum preclint if isfemale == 1, det
+
+                Rate Clinton pre-92 election.
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%           10              0
+10%           25              0       Obs               1,278
+25%           40              0       Sum of wgt.       1,278
+
+50%           60                      Mean           57.64397
+                        Largest       Std. dev.      24.62755
+75%           70            100
+90%           85            100       Variance       606.5161
+95%          100            100       Skewness      -.4548222
+99%          100            100       Kurtosis       2.805434
+
+. 
+. tabstat preclint, by(isfemale) stat(Var)
+
+Summary for variables: preclint
+Group variable: isfemale (R is female)
+
+isfemale |  Variance
+---------+----------
+    Male |  580.8732
+  Female |  606.5161
+---------+----------
+   Total |  596.8701
+--------------------
+
+. 
+. ******************************************************************************
+. // Question 6. Compare variance across two variables
+. ******************************************************************************
+. 
+. tabstat prebush preperot, stat(Var)
+
+   Stats |   prebush  preperot
+---------+--------------------
+Variance |  694.0874   706.898
+------------------------------
+
+.  
+. ******************************************************************************
+. // Question 7. Correlation
+. ******************************************************************************
+.  
+. correlate  prebush preperot
+(obs=2,297)
+
+             |  prebush preperot
+-------------+------------------
+     prebush |   1.0000
+    preperot |   0.0222   1.0000
+
+
+.  
+.  
+. 
+. log close
+      name:  <unnamed>
+       log:  g:\Shared drives\Sociology5811-F24\Resources\Data\s5811-a02-example
+> .log
+  log type:  text
+ closed on:  16 Sep 2024, 14:15:23
+--------------------------------------------------------------------------------

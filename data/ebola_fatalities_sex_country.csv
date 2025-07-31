@@ -1,0 +1,109 @@
+Gender,Age,Country,Deaths
+Male,0,Guinea,21.9
+Male,1,Guinea,51.7
+Male,5,Guinea,45.8
+Male,10,Guinea,26.2
+Male,15,Guinea,47.4
+Male,20,Guinea,85.1
+Male,25,Guinea,100.8
+Male,30,Guinea,102.7
+Male,35,Guinea,93
+Male,40,Guinea,70.8
+Male,45,Guinea,78.4
+Male,50,Guinea,55.2
+Male,55,Guinea,42.5
+Male,60,Guinea,42.4
+Male,65,Guinea,23.1
+Male,70,Guinea,23.9
+Male,75,Guinea,10.6
+Male,80,Guinea,8.6
+Male,0,Sierra Leone,40.1
+Male,1,Sierra Leone,191.8
+Male,5,Sierra Leone,182.3
+Male,10,Sierra Leone,189.6
+Male,15,Sierra Leone,178.2
+Male,20,Sierra Leone,261.3
+Male,25,Sierra Leone,343.3
+Male,30,Sierra Leone,267.7
+Male,35,Sierra Leone,294.1
+Male,40,Sierra Leone,252.9
+Male,45,Sierra Leone,217
+Male,50,Sierra Leone,156.1
+Male,55,Sierra Leone,108.6
+Male,60,Sierra Leone,102.5
+Male,65,Sierra Leone,87.9
+Male,70,Sierra Leone,41
+Male,75,Sierra Leone,28.1
+Male,80,Sierra Leone,45.2
+Male,0,Liberia,8.1
+Male,1,Liberia,50.6
+Male,5,Liberia,54.4
+Male,10,Liberia,49.5
+Male,15,Liberia,54.7
+Male,20,Liberia,79.4
+Male,25,Liberia,119.1
+Male,30,Liberia,128.1
+Male,35,Liberia,122
+Male,40,Liberia,118
+Male,45,Liberia,97.3
+Male,50,Liberia,69.4
+Male,55,Liberia,32.1
+Male,60,Liberia,31.8
+Male,65,Liberia,14.7
+Male,70,Liberia,11.2
+Male,75,Liberia,4.6
+Male,80,Liberia,10.3
+Female,0,Guinea,24.5
+Female,1,Guinea,63.8
+Female,5,Guinea,44
+Female,10,Guinea,37.1
+Female,15,Guinea,61.5
+Female,20,Guinea,61.3
+Female,25,Guinea,108
+Female,30,Guinea,92.4
+Female,35,Guinea,108.4
+Female,40,Guinea,89.3
+Female,45,Guinea,72.5
+Female,50,Guinea,60.9
+Female,55,Guinea,49.5
+Female,60,Guinea,58.5
+Female,65,Guinea,20.7
+Female,70,Guinea,28.9
+Female,75,Guinea,5.3
+Female,80,Guinea,15.3
+Female,0,Sierra Leone,45.8
+Female,1,Sierra Leone,162.3
+Female,5,Sierra Leone,186.2
+Female,10,Sierra Leone,194.3
+Female,15,Sierra Leone,231.9
+Female,20,Sierra Leone,292.9
+Female,25,Sierra Leone,348.5
+Female,30,Sierra Leone,310.3
+Female,35,Sierra Leone,335.4
+Female,40,Sierra Leone,243.2
+Female,45,Sierra Leone,198.1
+Female,50,Sierra Leone,154.5
+Female,55,Sierra Leone,98.9
+Female,60,Sierra Leone,115.8
+Female,65,Sierra Leone,82.6
+Female,70,Sierra Leone,37.1
+Female,75,Sierra Leone,36.3
+Female,80,Sierra Leone,65.9
+Female,0,Liberia,6.3
+Female,1,Liberia,45.3
+Female,5,Liberia,48
+Female,10,Liberia,47.6
+Female,15,Liberia,73.8
+Female,20,Liberia,94.8
+Female,25,Liberia,103.5
+Female,30,Liberia,130.1
+Female,35,Liberia,115
+Female,40,Liberia,106.2
+Female,45,Liberia,85.7
+Female,50,Liberia,59.5
+Female,55,Liberia,31.4
+Female,60,Liberia,18.3
+Female,65,Liberia,11.3
+Female,70,Liberia,13.8
+Female,75,Liberia,3.4
+Female,80,Liberia,8.4

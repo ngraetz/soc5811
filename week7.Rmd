@@ -1,0 +1,64 @@
+---
+title: "SOC-5811 Week 7: Causal inference and DAGs"
+author: "Nick Graetz"
+date: "9/3/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Causal inference}
+
+* Causal inference is a prediction task
+
+---
+
+\frametitle{Title}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,1) {$X$};
+		\node (2) at (7,1) {$Y$};
+
+		\draw [,->] (1) to (2);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{Title}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$V$};
+		\node (2) at (6,1) {$X$};
+		\node (3) at (11,1) {$M$};
+		\node (4) at (16,1) {$Y$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (4);
+		\draw [,->] (2) to (3);
+		\draw [,->] (3) to (4);
+
+	\end{tikzpicture}}
+
+\end{figure}
+

@@ -1,0 +1,127 @@
+--------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  g:\Shared drives\Sociology5811-F24\Resources\Data\s5811-a05-example
+> .log
+  log type:  text
+ opened on:  16 Oct 2024, 14:01:57
+
+. version 15.1
+
+. clear all
+
+. matrix drop _all
+
+. set linesize 80
+
+. 
+. //  program: s5811-a05-example
+. //  task:       Example for getting through assignment 5
+. //  project:   s5822 fall 2024
+. //  author:    Tom VanHeuvelen 2024 10
+. 
+. //  Question 1. Load data
+. 
+. * use is the command to open a dataset
+. use s5811-nes-example, clear
+
+. 
+. * describe specific variables
+. describe abortion occup religion postbush presvote
+
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+--------------------------------------------------------------------------------
+abortion        byte    %38.0g     abortion   View on abortion.
+occup           byte    %39.0g     occup      Occupation code.
+religion        byte    %12.0g     religion   Religious affiliation.
+postbush        byte    %13.0g     feel     * Rate Bush post-92 election.
+presvote        byte    %9.0g      prez       Who did you vote for?
+
+. 
+. //  Question 2. Select your two main variables
+. 
+. sum religion postbush , detail
+
+                   Religious affiliation.
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            1              1       Obs               2,012
+25%            1              1       Sum of wgt.       2,012
+
+50%            1                      Mean           1.686382
+                        Largest       Std. dev.      .9995292
+75%            2              4
+90%            4              4       Variance       .9990586
+95%            4              4       Skewness        1.39931
+99%            4              4       Kurtosis       3.739438
+
+                 Rate Bush post-92 election.
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%           15              0       Obs               2,234
+25%           40              0       Sum of wgt.       2,234
+
+50%           60                      Mean           55.69785
+                        Largest       Std. dev.      25.34497
+75%           70            100
+90%           85            100       Variance       642.3677
+95%          100            100       Skewness      -.3529073
+99%          100            100       Kurtosis       2.627088
+
+. 
+. ** silly - make young person variable
+. 
+. recode age (17/50=1) (51/91=0), gen(isyoung)
+(2,487 differences between age and isyoung)
+
+. lab var isyoung "is 25 or younger"
+
+. lab def isyoung 0 "Is not young" 1 "Is young"
+
+. lab values isyoung isyoung
+
+. 
+. tabstat age, by(isyoung) stat(min max)
+
+Summary for variables: age
+Group variable: isyoung (is 25 or younger)
+
+     isyoung |       Min       Max
+-------------+--------------------
+Is not young |        51        91
+    Is young |        17        50
+-------------+--------------------
+       Total |        17        91
+----------------------------------
+
+. 
+. // Question 3. Simple regression
+. 
+. reg postbush religion
+
+      Source |       SS           df       MS      Number of obs   =     1,817
+-------------+----------------------------------   F(1, 1815)      =     19.60
+       Model |  12728.1418         1  12728.1418   Prob > F        =    0.0000
+    Residual |  1178559.26     1,815  649.343946   R-squared       =    0.0107
+-------------+----------------------------------   Adj R-squared   =    0.0101
+       Total |   1191287.4     1,816  655.995267   Root MSE        =    25.482
+
+------------------------------------------------------------------------------
+    postbush | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    religion |   -2.65977   .6007571    -4.43   0.000    -3.838017   -1.481522
+       _cons |   60.76118   1.168323    52.01   0.000     58.46978    63.05258
+------------------------------------------------------------------------------
+
+. 
+. log close
+      name:  <unnamed>
+       log:  g:\Shared drives\Sociology5811-F24\Resources\Data\s5811-a05-example
+> .log
+  log type:  text
+ closed on:  16 Oct 2024, 14:01:57
+--------------------------------------------------------------------------------

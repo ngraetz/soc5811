@@ -1,0 +1,95 @@
+---
+title: "SOC-5811 Week 1: Intro to the course"
+author: "Nick Graetz"
+date: "9/3/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Introduction to me}
+
+>- Background
+>   - BS at Wisconsin (psychology and political science)
+>   - 3 years full-time fellow at IHME; part-time MPH at Washington (health metrics)
+>   - 1 year full-time researcher at IHME
+>   - 4 years PhD at Penn (sociology/demography) 
+>   - 3 years post-doc at Princeton
+>   - 1 year here at Minnesota
+
+>- 12 years of coding/stats experience
+
+---
+
+\frametitle{Introduction to the course}
+
+>- It’s easy to feel totally overwhelmed and totally behind. Quantitative methods can seem like a huge list of rules that you just don't "get" - and have no hope of ever understanding. \textbf{This is not true.}
+
+>- I've been doing this for 12 years and still don't know things and get stuck. I will spend all day working on a problem and finish with the deflating feeling that I know that "shouldn't" have taken me all day.
+
+>- But, many things take me 15 minutes today that took me 3 hours last year, or all day three years ago.
+
+---
+
+\frametitle{Vulnerability}
+
+>- In grad school and beyond, there can be enormous pressure to appear like you understand everything. 
+
+>- Quantitative methods are particularly threatening in this way and can trigger a lot of stereotype threat in ways that are racialized and gendered. 
+
+>- People may have also had access to very different opportunities around math/stats up to this point - or very negative experiences. 
+
+>- \textbf{This course will be a space where it's very important to ask questions and be confused.}
+
+---
+
+\frametitle{How do we understand quantitative methods?}
+
+>- \textbf{First principles $\longrightarrow$ Heuristics}
+
+>- A critical skill is being able to know where your understanding is and where you want it to be.
+
+>- It's very common to take a math/stats course that focuses a lot on first principles, say "why do I need to know this?", and give up on any level of understanding. 
+
+---
+
+\frametitle{Why should we understand quantitative methods (and coding)?}
+
+>- \textbf{There is some inherent value.} Quantitative methods can provide empirical, falsifiable facts about the social world (but not what those facts mean!); for example, how did different groups vote in 2024, and was this different from how those groups voted in 2020?
+
+>- \textbf{They will be used in your field.} You will have to understand and critique quantitative studies, even if they are outside the methodology you use in your own research.
+
+>- \textbf{Non-academic careers.}
+
+>- \textbf{Organizing/advocacy.}
+
+---
+
+\frametitle{Structure of the course}
+
+>- Lectures
+
+>- Lab
+
+>- Grading
+
+---
+
+\frametitle{Coding}
+
+>- Extensive use of R
+
+>- We will review in class and lab
+
+>- Make use of free resources
+

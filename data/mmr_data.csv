@@ -1,0 +1,25 @@
+year_id,mmr,maternal_education,ldi,location_name,super_region_name,region_name
+2015,52.574284,9.9007635,10593.983,China,"Southeast Asia, East Asia, and Oceania",East Asia
+2015,50.417849,5.9438248,2773.896,Cambodia,"Southeast Asia, East Asia, and Oceania",Southeast Asia
+2015,25.588546,11.535423,20782.643,Malaysia,"Southeast Asia, East Asia, and Oceania",Southeast Asia
+2015,61.258708,14.697507,33327.094,Japan,High-income,High-income Asia Pacific
+2015,25.15193,14.635294,40454.078,Australia,High-income,Australasia
+2015,33.024666,14.244808,35569.391,United Kingdom,High-income,Western Europe
+2015,31.660536,12.758,18768.256,Chile,High-income,Southern Latin America
+2015,45.827193,14.376788,47815.828,United States,High-income,High-income North America
+2015,81.4208,6.6412048,5980.0625,Guatemala,Latin America and Caribbean,Central Latin America
+2015,99.312079,10.507971,14817.909,Mexico,Latin America and Caribbean,Central Latin America
+2015,185.79947,9.1911774,12834.682,Brazil,Latin America and Caribbean,Tropical Latin America
+2015,171.27081,10.113992,6503.2622,Paraguay,Latin America and Caribbean,Tropical Latin America
+2015,79.535409,7.5203171,10649.354,Iraq,North Africa and Middle East,North Africa and Middle East
+2015,155.68512,12.085247,9345.3789,Jordan,North Africa and Middle East,North Africa and Middle East
+2015,452.68082,1.6309505,1409.2648,Afghanistan,North Africa and Middle East,North Africa and Middle East
+2015,88.739875,5.7404618,2473.8342,Bangladesh,South Asia,South Asia
+2015,25.072355,7.2787313,4539.3481,India,South Asia,South Asia
+2015,62.119474,4.5691442,1826.6516,Nepal,South Asia,South Asia
+2015,1246.7469,4.294311,699.61279,Central African Republic,Sub-Saharan Africa,Central Sub-Saharan Africa
+2015,419.7399,6.467545,1555.4011,Uganda,Sub-Saharan Africa,Eastern Sub-Saharan Africa
+2015,489.17351,8.9839544,14702.26,Botswana,Sub-Saharan Africa,Southern Sub-Saharan Africa
+2015,288.50316,10.910655,11629.265,South Africa,Sub-Saharan Africa,Southern Sub-Saharan Africa
+2015,779.53323,7.2403636,4471.5278,Nigeria,Sub-Saharan Africa,Western Sub-Saharan Africa
+2015,1149.8048,3.3145092,1420.4913,Sierra Leone,Sub-Saharan Africa,Western Sub-Saharan Africa
