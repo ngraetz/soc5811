@@ -119,12 +119,11 @@ Say I have a bag filled with 50 marbles of different colors. I reach in the bag 
 Data on US populations by state/region
 
 \tiny
-```{r, echo=FALSE}
+```{r, echo=T}
 census <- read_dta(paste0(data_dir,
                           's5811-msa.dta')) %>% 
-  mutate(across(c(state,region,isusa), as_label))
-## head/tabulate
-census %>% head()
+  mutate(across(c(state,region,isusa), as_label)) %>%
+  head()
 ```
 
 ---
@@ -134,9 +133,10 @@ census %>% head()
 Continuous and discrete variables
 
 \tiny
-```{r, echo=FALSE}
-## continuous/discrete variables
-census %>% select(population,region) %>% slice(1:5)
+```{r, echo=T}
+census %>% 
+  select(population,region) %>% 
+  slice(1:5)
 ```
 
 ---
@@ -157,13 +157,12 @@ census %>% select(population,region) %>% slice(1:5)
 \frametitle{Summarizing data}
 
 \tiny
-```{r, echo=FALSE}
+```{r, echo=T}
 gss <- read_dta(paste0(data_dir,
                        'GSS2018.dta')) %>% 
   select(degree,agekdbrn,realrinc,race,age,prestg10,educ,happy) %>%
-  mutate(across(c(degree,race,happy), as_label))
-
-gss %>% head()
+  mutate(across(c(degree,race,happy), as_label)) %>% 
+  head()
 ```
 
 ---
@@ -171,12 +170,19 @@ gss %>% head()
 \frametitle{Summarizing data}
 
 \small
-```{r, echo=FALSE}
+```{r, echo=T}
 plot_data <- gss %>%
   group_by(degree) %>% 
   summarise(n=n()) %>%
   mutate(prop=n/sum(n)*100)
+```
 
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=T}
 ggplot(data=plot_data,
        aes(x=degree,y=prop)) + 
   geom_bar(stat='identity') +
@@ -189,7 +195,7 @@ ggplot(data=plot_data,
 \frametitle{Summarizing data}
 
 \small
-```{r, echo=FALSE}
+```{r, echo=T}
 ggplot(data=gss,
        aes(x=realrinc)) + 
   geom_histogram() +
@@ -210,7 +216,7 @@ ggplot(data=gss,
 \frametitle{Summarizing data}
 
 \small
-```{r, echo=FALSE}
+```{r, echo=T}
 ggplot(data=gss,
        aes(x=realrinc)) + 
   geom_density() + 
@@ -225,7 +231,7 @@ ggplot(data=gss,
 Add measures of central tendency: mean and median
 
 \small
-```{r, echo=FALSE}
+```{r, echo=T}
 ggplot(data=gss,
        aes(x=realrinc)) + 
   geom_density() + 
@@ -242,7 +248,7 @@ ggplot(data=gss,
 Examine distribution:
 
 \small
-```{r, echo=FALSE}
+```{r, echo=T}
 ggplot(data=gss,
        aes(y=realrinc,x=degree)) + 
   geom_boxplot() + 
@@ -257,7 +263,7 @@ ggplot(data=gss,
 Examine bivariate relationship:
 
 \small
-```{r, echo=FALSE}
+```{r, echo=T}
 ggplot(data=gss,
        aes(x=educ,y=prestg10)) + 
   geom_point() + 
@@ -271,7 +277,7 @@ ggplot(data=gss,
 Correlation matrix:
 
 \small
-```{r, echo=FALSE}
+```{r, echo=T}
 gss %>% 
   select(educ,prestg10,realrinc,agekdbrn) %>%
   cor(use = 'complete.obs') %>% 
@@ -285,7 +291,7 @@ gss %>%
 Cross-tabulations table:
 
 \small
-```{r, echo=FALSE}
+```{r, echo=T}
 gss %>% 
   select(degree,race) %>%
   table() %>% 
