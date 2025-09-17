@@ -118,7 +118,7 @@ Say I have a bag filled with 50 marbles of different colors. I reach in the bag 
 
 Data on US populations by state/region
 
-\tiny
+\small
 ```{r, echo=T}
 census <- read_dta(paste0(data_dir,
                           's5811-msa.dta')) %>% 
@@ -132,7 +132,7 @@ census <- read_dta(paste0(data_dir,
 
 Continuous and discrete variables
 
-\tiny
+\small
 ```{r, echo=T}
 census %>% 
   select(population,region) %>% 
@@ -156,7 +156,7 @@ census %>%
 
 \frametitle{Summarizing data}
 
-\tiny
+\small
 ```{r, echo=F}
 gss <- read_dta(paste0(data_dir,
                        'GSS2018.dta')) %>% 
@@ -229,8 +229,8 @@ plot_data <- gss %>%
 
 \small
 ```{r, echo=T}
-ggplot(data=plot_data,
-       aes(x=degree,y=prop)) + 
+plot <- ggplot(data=plot_data,
+               aes(x=degree,y=prop)) + 
   geom_bar(stat='identity') +
   labs(x='Degree',y='Percent') + 
   theme_bw()
@@ -241,12 +241,30 @@ ggplot(data=plot_data,
 \frametitle{Summarizing data}
 
 \small
+```{r, echo=F}
+print(plot)
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
 ```{r, echo=T}
-ggplot(data=gss,
-       aes(x=realrinc)) + 
+plot <- ggplot(data=gss,
+               aes(x=realrinc)) + 
   geom_histogram() +
   labs(x='Income',y='Count') + 
   theme_bw()
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=F}
+print(plot)
 ```
 
 ---
@@ -263,11 +281,20 @@ ggplot(data=gss,
 
 \small
 ```{r, echo=T}
-ggplot(data=gss,
-       aes(x=realrinc)) + 
+plot <- ggplot(data=gss,
+               aes(x=realrinc)) + 
   geom_density(fill='grey') + 
   labs(x='Income',y='Density') + 
   theme_bw()
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=F}
+print(plot)
 ```
 
 ---
@@ -288,7 +315,7 @@ summaries
 
 \frametitle{Summarizing data}
 
-Add measures of central tendency: mean and median
+Reshape:
 
 \small
 ```{r, echo=T}
@@ -307,8 +334,8 @@ summaries
 
 \small
 ```{r, echo=T}
-ggplot(data=gss,
-       aes(x=realrinc)) + 
+plot <- ggplot(data=gss,
+               aes(x=realrinc)) + 
   geom_density() + 
   geom_vline(data=summaries,
              aes(xintercept=income,
@@ -320,14 +347,34 @@ ggplot(data=gss,
 
 ---
 
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=F}
+print(plot)
+```
+
+---
+
+\frametitle{Review}
+
+What do we want to do with data?
+
+>- Manipulate variables, which might involve conditional statements
+>- \textbf{Merge:} combine two datasets on matching columns
+>- \textbf{Reshape:} wide to long, long to wide
+>- \textbf{Summarize:} aggregate over rows
+
+---
+
 \frametitle{Univariate summary statistics}
 
 Examine distribution:
 
 \small
 ```{r, echo=T}
-ggplot(data=gss,
-       aes(y=realrinc,x=degree)) + 
+plot <- ggplot(data=gss,
+               aes(y=realrinc,x=degree)) + 
   geom_boxplot() + 
   labs(x='Degree',y='Income') + 
   theme_bw()
@@ -335,16 +382,11 @@ ggplot(data=gss,
 
 ---
 
-\frametitle{Bivariate relationships}
-
-Examine bivariate relationship:
+\frametitle{Univariate summary statistics}
 
 \small
-```{r, echo=T}
-ggplot(data=gss,
-       aes(x=educ,y=prestg10)) + 
-  geom_point() + 
-  theme_bw()
+```{r, echo=F}
+print(plot)
 ```
 
 ---
@@ -374,6 +416,51 @@ gss %>%
   table() %>% 
   prop.table() %>%
   round(2)
+```
+
+---
+
+\frametitle{Bivariate relationships}
+
+Examine bivariate relationship:
+
+\small
+```{r, echo=T}
+plot <- ggplot(data=gss,
+               aes(x=educ,y=prestg10)) + 
+  geom_point() + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Bivariate relationships}
+
+\small
+```{r, echo=F}
+print(plot)
+```
+
+---
+
+\frametitle{Bivariate relationships}
+
+\small
+```{r, echo=T}
+plot <- ggplot(data=gss,
+               aes(x=educ,y=prestg10)) + 
+  geom_point() + 
+  geom_smooth(method='lm') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Bivariate relationships}
+
+\small
+```{r, echo=F}
+print(plot)
 ```
 
 ---
