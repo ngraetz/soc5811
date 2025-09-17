@@ -157,12 +157,58 @@ census %>%
 \frametitle{Summarizing data}
 
 \tiny
-```{r, echo=T}
+```{r, echo=F}
 gss <- read_dta(paste0(data_dir,
                        'GSS2018.dta')) %>% 
   select(degree,agekdbrn,realrinc,race,age,prestg10,educ,happy) %>%
-  mutate(across(c(degree,race,happy), as_label)) %>% 
-  head()
+  mutate(across(c(degree,race,happy), as_label))
+```
+
+```{r, echo=T}
+head(gss)
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=T}
+gss %>%
+  summarise(mean_income=mean(realrinc))
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=T}
+gss %>%
+  summarise(mean_income=mean(realrinc, na.rm=T))
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=T}
+gss %>%
+  group_by(degree) %>% 
+  summarise(mean_income=mean(realrinc, na.rm=T))
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=T}
+gss %>%
+  group_by(degree) %>% 
+  summarise(n=n()) %>%
+  mutate(prop=n/sum(n)*100)
 ```
 
 ---
@@ -219,7 +265,7 @@ ggplot(data=gss,
 ```{r, echo=T}
 ggplot(data=gss,
        aes(x=realrinc)) + 
-  geom_density() + 
+  geom_density(fill='grey') + 
   labs(x='Income',y='Density') + 
   theme_bw()
 ```
@@ -232,11 +278,42 @@ Add measures of central tendency: mean and median
 
 \small
 ```{r, echo=T}
+summaries <- gss %>%
+  summarise(mean_income=mean(realrinc, na.rm=T),
+            median_income=median(realrinc, na.rm=T))
+summaries
+```
+
+---
+
+\frametitle{Summarizing data}
+
+Add measures of central tendency: mean and median
+
+\small
+```{r, echo=T}
+summaries <- gss %>%
+  summarise(mean_income=mean(realrinc, na.rm=T),
+            median_income=median(realrinc, na.rm=T)) %>%
+  pivot_longer(cols=contains('income'),
+               names_to='Measure',
+               values_to='income')
+summaries
+```
+
+---
+
+\frametitle{Summarizing data}
+
+\small
+```{r, echo=T}
 ggplot(data=gss,
        aes(x=realrinc)) + 
   geom_density() + 
-  geom_vline(xintercept = mean(gss$realrinc,na.rm=T), color='red', size=1, linetype='dashed') + 
-  geom_vline(xintercept = median(gss$realrinc,na.rm=T), color='blue', size=1, linetype='dashed') +
+  geom_vline(data=summaries,
+             aes(xintercept=income,
+                 color=Measure),
+             size=1) + 
   labs(x='Income',y='Density') + 
   theme_bw()
 ```
