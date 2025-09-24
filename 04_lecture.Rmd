@@ -20,7 +20,9 @@ library(marginaleffects)
 # knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 20), tidy = TRUE)
 knitr::opts_chunk$set(
  fig.width = 6,
- fig.height = 4
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE
 )
 ```
 
@@ -665,10 +667,6 @@ $$pcthouse = f(pctpop)$$
 
 \frametitle{Review}
 
-How do we create a model based on empirical data?
-
-$$pcthouse = f(pctpop)$$
-
 1. Choose a functional form for the model.
 
 $$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
@@ -676,10 +674,6 @@ $$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
 ---
 
 \frametitle{Review}
-
-How do we create a model based on empirical data?
-
-$$pcthouse = f(pctpop)$$
 
 1. Choose a functional form for the model.
 
@@ -692,10 +686,6 @@ $$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\
 ---
 
 \frametitle{Review}
-
-How do we create a model based on empirical data?
-
-$$pcthouse = f(pctpop)$$
 
 1. Choose a functional form for the model.
 
@@ -710,10 +700,6 @@ $$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\
 ---
 
 \frametitle{Review}
-
-How do we create a model based on empirical data?
-
-$$pcthouse = f(pctpop)$$
 
 1. Choose a functional form for the model.
 
@@ -870,7 +856,7 @@ lm(pcthouse~pctpop_10, data=census)
 
 >- \textbf{Rescaling}
 >- \textbf{Shifting}
->- Rescaling and shifting are useful for \textbf{interpretation} of regression coefficients. For example, say my dependent variable is life expectancy and my independent variable is income. How would I interpret the slope coefficient? 
+>- Rescaling and shifting are useful for \textbf{interpretation} of regression coefficients. 
 >- As we will see, they don't fundamentally change properties of the regression model or statistical tests. 
 
 ---
@@ -900,6 +886,8 @@ summary(lm(pcthouse~pctpop_rescaled, data=census))
 
 ---
 
+\frametitle{Linear transformations of the independent variable}
+
 \tiny
 ```{r, echo=F}
 census %>%
@@ -909,6 +897,8 @@ census %>%
 ```
 
 ---
+
+\frametitle{Linear transformations of the independent variable}
 
 \tiny
 ```{r, echo=F}
@@ -921,11 +911,84 @@ census %>%
 
 ---
 
+\frametitle{Linear transformations of the independent variable}
+
 \tiny
 ```{r, echo=F}
 census %>%
   mutate(pctpop_rescaled = scale(pctpop)) %>%
   ggplot(aes(x=pctpop_rescaled)) +
   geom_density(fill='lightgrey') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Examples}
+
+\tiny
+```{r, echo=T}
+msp_micro <- fread('https://raw.githubusercontent.com/ngraetz/soc5811/refs/heads/main/data/acs2023_hennepin.csv')
+summary(lm(hhincome~ownershp, data=msp_micro))
+```
+
+---
+
+\frametitle{Examples}
+
+\tiny
+```{r, echo=F}
+ggplot(data=msp_micro[age %in% 25:64],
+       aes(x=age,
+           y=hhincome)) + 
+  geom_point() + 
+  geom_smooth(method='lm') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Examples}
+
+\tiny
+```{r, echo=T}
+msp_micro[, renter := ifelse(ownershp=='rented',1,0)]
+summary(lm(hhincome~renter, data=msp_micro))
+```
+
+---
+
+\frametitle{Examples}
+
+\tiny
+```{r, echo=F}
+ggplot(data=msp_micro[!is.na(hhincome)],
+       aes(x=renter,
+           y=hhincome)) + 
+  geom_point() + 
+  geom_smooth(method='lm') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Examples}
+
+\tiny
+```{r, echo=T}
+summary(lm(renter~hhincome, data=msp_micro[hhincome<=150000]))
+```
+
+---
+
+\frametitle{Examples}
+
+\tiny
+```{r, echo=F}
+ggplot(data=msp_micro[hhincome<=150000],
+       aes(x=hhincome,
+           y=renter)) + 
+  geom_point() + 
+  geom_smooth(method='lm') + 
   theme_bw()
 ```
