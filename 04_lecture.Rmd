@@ -1,5 +1,5 @@
 ---
-title: "SOC-5811 Week 3: Linear regression"
+title: "SOC-5811 Week 4: Linear regression"
 author: "Nick Graetz"
 date: "9/22/2025"
 output: 
@@ -515,3 +515,417 @@ $$pcthouse_i=4.08+1.01{pctpop_i}+\epsilon_i$$
   \includegraphics[width=\textwidth,height=0.80\textheight,keepaspectratio]{figures/week3_scatter}
   \end{column}
 \end{columns}
+
+---
+
+\frametitle{Review}
+
+* How do we calculate linear regression coefficients?
+
+---
+
+\frametitle{Review}
+
+* How do we calculate linear regression coefficients?
+* Minimize the sum of squared residuals. 
+* This is why linear regression is called Ordinary Least Squares (OLS). 
+
+$$\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+---
+
+\frametitle{Review}
+
+$$\text{Residual}_i=\text{Observed}_i-\text{Prediction}_i$$
+
+---
+
+\frametitle{Review}
+
+$$\text{Residual}_i=y_i-\text{Prediction}_i$$
+
+---
+
+\frametitle{Review}
+
+$$\text{Residual}_i=y_i-(\widehat{\beta_0}+\widehat{\beta_1}x_i)$$
+
+---
+
+\frametitle{Review}
+
+$$\text{Residual}_i=y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i$$
+
+---
+
+\frametitle{Review}
+
+$$\text{Squared residual}_i=(y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+---
+
+\frametitle{Review}
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+---
+
+\frametitle{Review}
+
+* What do I need to know to calculate the sum of squared residuals?
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+---
+
+\frametitle{Review}
+
+* What do I need to know to calculate the sum of squared residuals?
+
+* For every possible value of the coefficients, there is a single sum of squared residuals.
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+---
+
+\frametitle{Review}
+
+\tiny
+```{r, echo=T}
+beta_grid <- as.data.table(expand.grid(b0=seq(2,6,0.01),b1=seq(0,2,0.01)))
+ss <- function(i) {
+  out <- data.table(b0=as.numeric(beta_grid[i,1]),
+                    b1=as.numeric(beta_grid[i,2]),
+                    ss=census[, sum((pcthouse-
+                                     as.numeric(beta_grid[i,1])-
+                                     as.numeric(beta_grid[i,2])*pctpop)^2)])
+  return(out)
+}
+out <- rbindlist(lapply(1:nrow(beta_grid), ss))
+```
+
+---
+
+\frametitle{Review}
+
+```{r, echo=F}
+ggplot(data=out,
+       aes(x=b0,
+           y=b1,
+           fill=ss)) + 
+  scale_fill_viridis_c(option='plasma',
+                       direction=-1) + 
+  geom_tile() + 
+  geom_point(data=out[ss==min(ss)], size=3) + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Review}
+
+```{r, echo=T}
+out %>% 
+  filter(ss==min(ss))
+```
+
+---
+
+\frametitle{Review}
+
+```{r, echo=T}
+## Outcome
+Y <- as.matrix(census$pcthouse)
+## Design matrix
+X <- cbind(1, census$pctpop)
+## Matrix algebra
+solve(t(X) %*% X) %*% t(X) %*% Y
+```
+
+---
+
+\frametitle{Review}
+
+\tiny
+```{r, echo=TRUE}
+model <- lm(pcthouse~pctpop, 
+            data=census)
+summary(model)
+```
+
+---
+
+\frametitle{Review}
+
+How do we create a model based on empirical data?
+
+$$pcthouse = f(pctpop)$$
+
+---
+
+\frametitle{Review}
+
+How do we create a model based on empirical data?
+
+$$pcthouse = f(pctpop)$$
+
+1. Choose a functional form for the model.
+
+$$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
+
+---
+
+\frametitle{Review}
+
+How do we create a model based on empirical data?
+
+$$pcthouse = f(pctpop)$$
+
+1. Choose a functional form for the model.
+
+$$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
+
+2. Choose an estimator (i.e., objective function) that relates the model to real observed data (e.g., OLS).
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+---
+
+\frametitle{Review}
+
+How do we create a model based on empirical data?
+
+$$pcthouse = f(pctpop)$$
+
+1. Choose a functional form for the model.
+
+$$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
+
+2. Choose an estimator (i.e., objective function) that relates the model to real observed data (e.g., OLS).
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+3. Fit the model (e.g., estimate parameters) by optimizing the objective function.
+
+---
+
+\frametitle{Review}
+
+How do we create a model based on empirical data?
+
+$$pcthouse = f(pctpop)$$
+
+1. Choose a functional form for the model.
+
+$$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
+
+2. Choose an estimator (i.e., objective function) that relates the model to real observed data (e.g., OLS).
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+3. I want to maximize the likelihood that my observed data came from one particular model (e.g., set of parameters) relative to all other models. 
+
+---
+
+\frametitle{Review}
+
+\includegraphics[width = 0.7\textwidth]{images/openai.png}
+
+---
+
+\frametitle{Properties of a good estimator}
+
+>- How do we choose an objective function?
+>- \textbf{Unbiased}: An unbiased estimator has an expected value equal to the “true” population parameter.
+>- \textbf{Consistency}: A consistent estimator “collapses” around the true value with variance zero as the sample size gets
+larger and moves towards infinity.
+>- \textbf{Efficiency}: An efficient estimator is one that has a small sampling variance, relative to another estimator.
+
+---
+
+\frametitle{Properties of a good estimator}
+
+>- There are entire classes on statistical inference that focus on deriving the proofs for these properties. 
+>- The \textbf{Gauss-Markov theorem} states that for a linear regression model, the ordinary least squares (OLS) estimator provides the Best Linear Unbiased Estimator (BLUE), meaning it is the most precise (has the minimum variance) among all linear, unbiased estimators. This holds true when the model's error terms are uncorrelated, have equal variances, and a zero expectation, a set of assumptions known as \textbf{Gauss-Markov assumptions}.
+>- \textbf{We will discuss model diagnostics in Week 12.}
+
+---
+
+\frametitle{Residuals}
+
+```{r, echo=F}
+ggplot(data=census,
+       aes(x=pctpop,
+           y=pcthouse)) + 
+  geom_line(aes(x=pctpop,y=pcthouse_pred)) + 
+  geom_linerange(data=census %>% filter(residual>=0),
+                 aes(x=pctpop,ymin=pcthouse_pred,ymax=pcthouse),
+                 color='blue') + 
+  geom_linerange(data=census %>% filter(residual<0),
+                 aes(x=pctpop,ymin=pcthouse,ymax=pcthouse_pred),
+                 color='red') + 
+  geom_point() + 
+  labs(x='Percent pop growth 2000-2010',
+       y='Percent housing growth 2000-2010') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Residuals}
+
+```{r, echo=T}
+census <- census %>% 
+  mutate(redisual=pcthouse-pcthouse_pred)
+
+plot <- ggplot(data=census,
+               aes(x=pcthouse_pred,
+                   y=residual)) + 
+  geom_point() + 
+  geom_hline(yintercept=0) + 
+  labs(x='Predicted value',y='Residual') +
+  theme_bw()
+```
+
+---
+
+\tiny
+```{r, echo=FALSE}
+print(plot)
+```
+
+---
+
+\frametitle{Residuals}
+
+```{r, echo=T}
+census %>% 
+  summarize(mean_residual=round(mean(residual),4),
+            total_residual=round(sum(residual),4))
+```
+
+---
+
+\frametitle{Properties of OLS}
+
+* OLS produces residuals which are uncorrelated with predicted values.
+* OLS produces residuals that sum to zero.
+
+---
+
+\frametitle{Goodness of fit}
+
+\tiny
+```{r, echo=T}
+summary(model)
+```
+
+---
+
+\frametitle{Interpreting coefficients}
+
+$$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
+
+$$pcthouse_i=4.08+1.01{pctpop_i}+\epsilon_i$$
+
+>- How do we interpret the \textbf{intercept} coefficient?
+>- How do we interpret the \textbf{slope} coefficient?
+
+---
+
+\frametitle{Interpreting coefficients}
+
+What if I divide my independent variable by 10?
+
+```{r, echo=T}
+census <- census %>% 
+  mutate(pctpop_10 = pctpop/10)
+```
+
+---
+
+\frametitle{Interpreting coefficients}
+
+What if I divide my independent variable by 10?
+
+```{r, echo=T}
+lm(pcthouse~pctpop_10, data=census)
+```
+
+---
+
+\frametitle{Interpreting coefficients}
+
+What if I shift my independent variable by 10?
+
+```{r, echo=T}
+census <- census %>% 
+  mutate(pctpop_10 = pctpop+10)
+lm(pcthouse~pctpop_10, data=census)
+```
+
+---
+
+\frametitle{Linear transformations of the independent variable}
+
+>- \textbf{Rescaling}
+>- \textbf{Shifting}
+>- Rescaling and shifting are useful for \textbf{interpretation} of regression coefficients. For example, say my dependent variable is life expectancy and my independent variable is income. How would I interpret the slope coefficient? 
+>- As we will see, they don't fundamentally change properties of the regression model or statistical tests. 
+
+---
+
+\frametitle{Linear transformations of the independent variable}
+
+* R-squared is the same.
+* The p-value and standard error on the slope coefficient are the same.
+
+\tiny
+```{r, echo=F}
+census <- census %>% 
+  mutate(pctpop_10 = pctpop+10)
+summary(lm(pcthouse~pctpop_10, data=census))
+```
+
+---
+
+\frametitle{Linear transformations of the independent variable}
+
+\tiny
+```{r, echo=T}
+census <- census %>% 
+  mutate(pctpop_rescaled = scale(pctpop))
+summary(lm(pcthouse~pctpop_rescaled, data=census))
+```
+
+---
+
+\tiny
+```{r, echo=F}
+census %>%
+  ggplot(aes(x=pctpop)) +
+  geom_density(fill='lightgrey') + 
+  theme_bw()
+```
+
+---
+
+\tiny
+```{r, echo=F}
+census %>%
+  mutate(pctpop_100=pctpop+100) %>%
+  ggplot(aes(x=pctpop_100)) +
+  geom_density(fill='lightgrey') + 
+  theme_bw()
+```
+
+---
+
+\tiny
+```{r, echo=F}
+census %>%
+  mutate(pctpop_rescaled = scale(pctpop)) %>%
+  ggplot(aes(x=pctpop_rescaled)) +
+  geom_density(fill='lightgrey') + 
+  theme_bw()
+```
