@@ -1,0 +1,453 @@
+---
+title: "SOC-5811 Week 5: Sampling distributions and statistical inference"
+author: "Nick Graetz"
+date: "9/29/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+## Libraries
+library(tidyverse)
+library(data.table)
+library(ggplot2)
+library(haven)
+library(formatR)
+library(marginaleffects)
+library(cowplot)
+# knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 20), tidy = TRUE)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE
+)
+```
+
+---
+
+\frametitle{Review}
+
+\textbf{Why are we creating models (e.g., linear regression) for data at all?}
+
+* Summarizing relationships.
+
+* Making predictions.
+
+---
+
+\frametitle{Review}
+
+1. Choose a functional form for the model.
+
+$$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
+
+\textbf{Once we define a model, how do we estimate the parameters using data?}
+
+---
+
+\frametitle{Review}
+
+1. Choose a functional form for the model.
+
+$$pcthouse_i=\beta_0+\beta_1{pctpop_i}+\epsilon_i$$
+
+2. Choose an estimator (i.e., objective function) that relates the model to real observed data (e.g., OLS).
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+3. Fit the model (e.g., estimate parameters) by optimizing the objective function.
+
+---
+
+\frametitle{Review}
+
+\textbf{What is happening behind the scenes to fit the model?}
+
+* If there is a closed-form solution: math.
+* If there is not a closed-form solution: iterative calculations and approximations.
+
+\begin{center}
+\includegraphics[width = 0.7\textwidth]{images/ss_example.png}
+\end{center}
+
+---
+
+\frametitle{Review}
+
+* Linear regression is practically very useful because it summarizes relationships with simple parameters that are easy to interpret. 
+
+* This is true even once we start adding _more_ independent variables!
+
+---
+
+\frametitle{Statistical inference}
+
+* Across working years, are incomes higher at older ages in Hennepin County?
+
+* If we can agree on definitions of income and age, then this seems like a question we should be able to answer empirically!
+
+---
+
+\frametitle{Statistical inference}
+
+\tiny
+```{r, echo=F}
+msp_micro <- fread('https://raw.githubusercontent.com/ngraetz/soc5811/refs/heads/main/data/acs2023_hennepin.csv')
+ggplot(data=msp_micro[educ=='4 years of college' & age %in% 25:64 & !is.na(hhincome),],
+       aes(x=age,y=hhincome)) + 
+  geom_point(alpha=0.7) + 
+  scale_fill_viridis_c(option='plasma') + 
+  labs(x='Age', y='Household income') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Statistical inference}
+
+\tiny
+```{r, echo=F}
+ggplot(data=msp_micro[educ=='4 years of college' & age %in% 25:64 & !is.na(hhincome),],
+       aes(x=age,y=hhincome)) + 
+  geom_hex(alpha=0.7) + 
+  scale_fill_viridis_c(option='plasma') + 
+  labs(x='Age', y='Household income') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Statistical inference}
+
+\tiny
+```{r, echo=F}
+msp_micro_working <- msp_micro[educ=='4 years of college' & age %in% 25:64 & !is.na(hhincome),]
+msp_micro_working[, age_factor := as.factor(age)]
+msp_micro_working[, age_factor := relevel(age_factor, '25')]
+mod <- lm(hhincome~age_factor, data=msp_micro_working)
+out <- as.data.table(avg_predictions(mod, by='age_factor'))
+out[, age := as.numeric(as.character(age_factor))]
+ggplot(data=out, aes(x=age,y=estimate,ymin=`conf.low`,ymax=`conf.high`)) + 
+  geom_linerange() + 
+  geom_point(size=2) + 
+  labs(x='Age', y='Household income') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Statistical inference}
+
+\tiny
+```{r, echo=F}
+msp_micro <- fread('https://raw.githubusercontent.com/ngraetz/soc5811/refs/heads/main/data/acs2023_hennepin.csv')
+ggplot(data=msp_micro[educ=='4 years of college' & age %in% 25:64 & !is.na(hhincome),],
+       aes(x=age,y=hhincome)) + 
+  geom_hex(alpha=0.7) + 
+  geom_smooth(method='lm',color='black') +
+  scale_fill_viridis_c(option='plasma') + 
+  labs(x='Age', y='Household income') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Statistical inference}
+
+>- Could the sample relationship be due to chance?
+
+>- Based on our _sample_, how sure are we that the _population_ parameter is different from 0?
+
+---
+
+\frametitle{Statistical inference}
+
+>- \textbf{Parameters} = the unknown numbers that determine a statistical model. 
+
+>- Parameters can be used to simulate new data from the model.
+
+---
+
+\frametitle{Statistical inference}
+
+>- \textbf{Statistical inference} = a set of operations on data that yield estimates and uncertainty statements about \textbf{predictions and parameters} of some underlying process or population.
+
+>- More simply, we observe data and we try to learn something about where it came from (i.e., the data generating process).
+
+>- \textbf{This involves uncertainty.} 
+
+---
+
+\frametitle{Statistical inference}
+
+* Say I have a population of 1000 people and I ask 30 of them their income. The parameter I'm interested in inferring something about is the average income in the entire population.
+
+---
+
+\frametitle{Statistical inference}
+
+\tiny
+```{r, echo=FALSE}
+test <- data.table(income=round(rnorm(30, 65, 20)))
+ggplot(data=test,
+       aes(x=income)) + 
+  geom_histogram(color=NA,fill='grey') + 
+  geom_vline(xintercept = test[,mean(income)], color='red', size=2) + 
+  labs(x='Income',y='Count') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Statistical inference}
+
+\tiny
+```{r, echo=FALSE}
+get_sample <- function(i) {
+  test <- data.table(income=round(rnorm(30, 65, 20)))
+  test[, mean := mean(income)]
+  test[, sample := paste0('Sample ',i)]
+  return(test)
+}
+test <- rbindlist(lapply(1:6, get_sample))
+ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_vline(aes(xintercept=mean), color='red', size=1) + 
+    facet_wrap(~sample, nrow=2) + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Sampling distribution}
+
+>- \textbf{Sampling distribution} = the set of possible datasets that could have been observed if the data collection process had been re-done, along with the probabilities of these values.
+
+>- In practice, we will not know the sampling distribution; we can only estimate it. 
+
+---
+
+\frametitle{Standard errors}
+
+>- \textbf{Standard deviation} = a measure of the spread of data around the mean. 
+
+$$\sigma=\sqrt{\frac{\sum(x_i-\mu)^2}{N}}$$
+
+\begin{center}
+\includegraphics[width = 0.7\textwidth]{images/normal_sd.png}
+\end{center}
+
+---
+
+\frametitle{Standard errors}
+
+* \textbf{Standard deviation} = a measure of the spread of data around the mean. 
+
+$$\sigma=\sqrt{\frac{\sum(x_i-\mu)^2}{N}}$$
+
+* \textbf{Standard error} = ???
+
+---
+
+\frametitle{Standard errors}
+
+* \textbf{Standard deviation} = a measure of the spread of data around the sample mean. 
+
+$$\sigma=\sqrt{\frac{\sum(x_i-\mu)^2}{N}}$$
+
+* \textbf{Standard error} = a measure of the spread of sample means around the population mean; the standard deviation of the sampling distribution. 
+
+---
+
+\frametitle{Sampling distribution}
+
+\tiny
+```{r, echo=FALSE}
+get_sample <- function(i) {
+  test <- data.table(income=round(rnorm(30, 65, 20)))
+  gg <- ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_vline(xintercept = test[,mean(income)], color='red', size=1) + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+  return(gg)
+}
+test <- lapply(1:6, get_sample)
+plot_grid(plotlist = test, nrow=2)
+```
+
+---
+
+\frametitle{Sampling distribution}
+
+Sampling distribution of the mean:
+
+\tiny
+```{r, echo=FALSE}
+get_sample <- function(i) {
+  test <- data.table(income=round(rnorm(30, 65, 20)))
+  return(mean(test[,income]))
+}
+test <- unlist(lapply(1:1000, get_sample))
+test <- data.table(income=test)
+ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_vline(xintercept = test[,mean(income)], color='red', size=1) + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Sampling distribution}
+
+What do you notice about the shape of this distribution?
+
+\tiny
+```{r, echo=FALSE}
+ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_vline(xintercept = test[,mean(income)], color='red', size=1) + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Sampling distribution}
+
+* \textbf{Central Limit Theorem}
+
+\tiny
+```{r, echo=FALSE}
+ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_vline(xintercept = test[,mean(income)], color='red', size=1) + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Sampling distribution}
+
+\tiny
+```{r, echo=FALSE}
+get_sample_size <- function(size) {
+  get_sample <- function(i,size) {
+    test <- data.table(income=round(rnorm(size, 65, 20)))
+    return(mean(test[,income]))
+  }
+  test <- unlist(lapply(1:1000, get_sample, size=size))
+  test <- data.table(income=test)
+  test[, size := size]
+  return(test)
+}
+test2 <- rbindlist(lapply(c(30,100,400), get_sample_size))
+ggplot(data=test2,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    facet_wrap(~size,nrow=1) + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Sampling distribution}
+
+How do I interpret the standard deviation of this distribution?
+
+\tiny
+```{r, echo=FALSE}
+ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_vline(xintercept = test[,mean(income)], color='red', size=1) + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Sampling distribution}
+
+>- However defined, the standard error is a measure of the variation in an estimate and gets smaller as sample size gets larger, converging on zero as the sample increases in size.
+
+>- The \textbf{confidence interval} represents a range of values of a parameter or quantity of interest that are roughly consistent with the data, given the assumed sampling distribution.
+
+---
+
+\frametitle{Sampling distribution}
+
+\tiny
+```{r, echo=FALSE}
+ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_vline(xintercept = test[,mean(income)], color='red', size=1) + 
+    geom_vline(xintercept = test[,mean(income)+1.96*sd(income)], color='red', size=1, linetype='dashed') +
+    geom_vline(xintercept = test[,mean(income)-1.96*sd(income)], color='red', size=1, linetype='dashed') +
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Bias}
+
+It is possible to be very confidently wrong!
+
+```{r, echo=FALSE}
+test <- data.table(income=round(rnorm(10000, 65, 20)))
+ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Bias}
+
+Say only people with incomes above 50k complete my survey:
+
+```{r, echo=FALSE}
+ggplot(data=test,
+         aes(x=income)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_histogram(data=test[income>50,], color=NA,fill='red') + 
+    labs(x='Income',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Bias}
+
+\textbf{Describing uncertainty:}
+
+>- Standard errors capture a particular (but very important!) type of uncertainty: sampling error.
+
+>- There are lots of other reasons to be uncertain! 
+
+---
+
+\frametitle{Statistical significance}
+
+What can we do with standard errors?
+
+* Hypothesis testing
+
+
