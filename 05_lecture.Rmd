@@ -450,4 +450,310 @@ What can we do with standard errors?
 
 * Hypothesis testing
 
+---
 
+\frametitle{Review}
+
+>- Standard error
+>   - The standard deviation of an estimate
+>   - How close are our sample statistics to the true statistics?
+>   - Gets smaller as sample size gets larger, converging on zero as sample size increases.
+
+---
+
+\frametitle{Review}
+
+>- Confidence intervals
+>   - Mean +/- 2 standard errors
+>   - A 95% confidence interval has the following property: if we take repeated samples and construct the confidence interval for each sample, 95% of the intervals will contain the true unknown value of the parameter.
+
+---
+
+\frametitle{Review}
+
+\begin{center}
+\includegraphics[width = 0.7\textwidth]{images/confidence_intervals.png}
+\end{center}
+
+---
+
+\frametitle{Confidence intervals}
+
+$$y_i=\beta_0+\beta_1X+\epsilon_i$$
+
+$$\beta_1 = 5.5\,(95\%\,\text{CI:}\,4.0 - 7.0)$$
+
+What is our model saying about changes in Y related to changes in X?
+
+Predictions: If X goes up by 1, Y will increase somewhere between 4.0 and 7.0.
+
+---
+
+\frametitle{Hypothesis testing}
+
+$$y_i=\beta_0+\beta_1X+\epsilon_i$$
+
+$$H_0: \text{There is no relationship between X and Y}$$
+
+$$H_1: \text{There is some relationship between X and Y}$$
+
+---
+
+\frametitle{Hypothesis testing}
+
+$$y_i=\beta_0+\beta_1X+\epsilon_i$$
+
+$$H_0: B_1=0$$
+
+$$H_1: B_1\neq0$$
+
+---
+
+\frametitle{Hypothesis testing}
+
+>- We need to determine whether our estimate of $\beta_1$ is sufficiently far from zero such that we can be confident that $\beta_1$ is non-zero.
+
+>- \textbf{How far is far enough?} It depends on the accuracy of our estimate of $\beta_1$; that is, it depends on the standard error of $\beta_1$.
+
+---
+
+\frametitle{Hypothesis testing}
+
+\tiny
+```{r, echo=FALSE}
+coefs <- data.table(model=paste0('Model ',1:4),
+                    estimate=c(0.5,3,0,0),
+                    lower=c(0.2,1,-2,-0.2),
+                    upper=c(0.8,5,2,0.2))
+ggplot(data=coefs[1:2,],
+       aes(y=model,x=estimate,xmin=lower,xmax=upper)) +
+  geom_vline(xintercept = 0, linetype='dashed') + 
+  geom_linerange() + 
+  geom_point(size=3) + 
+  labs(y='',x='Coefficient estimate') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Hypothesis testing}
+
+\tiny
+```{r, echo=FALSE}
+coefs <- data.table(model=paste0('Model ',1:4),
+                    estimate=c(0.5,3,0,0),
+                    lower=c(0.2,1,-2,-0.2),
+                    upper=c(0.8,5,2,0.2))
+ggplot(data=coefs[1:3,],
+       aes(y=model,x=estimate,xmin=lower,xmax=upper)) +
+  geom_vline(xintercept = 0, linetype='dashed') + 
+  geom_linerange() + 
+  geom_point(size=3) + 
+  labs(y='',x='Coefficient estimate') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Hypothesis testing}
+
+\tiny
+```{r, echo=FALSE}
+coefs <- data.table(model=paste0('Model ',1:4),
+                    estimate=c(0.5,3,0,0),
+                    lower=c(0.2,1,-2,-0.2),
+                    upper=c(0.8,5,2,0.2))
+ggplot(data=coefs,
+       aes(y=model,x=estimate,xmin=lower,xmax=upper)) +
+  geom_vline(xintercept = 0, linetype='dashed') + 
+  geom_linerange() + 
+  geom_point(size=3) + 
+  labs(y='',x='Coefficient estimate') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{p-values}
+
+>- Is it "statistically significant?"
+
+>- If $\beta_1=0$, how likely is it that we would estimate a $\beta_1$ as large or larger than the one we did observe?
+
+---
+
+\frametitle{p-values}
+
+>- \textbf{p-value} = the probability that the null model would produce a parameter estimate as extreme as your observed estimate.  
+>- If the null model is true and we repeated our data collection many times, how often would we observe a parameter estimate as extreme as our observed estimate by chance?
+>- A small p-value indicates that it is unlikely to observe such a substantial association between the predictor and the response due to chance, in the absence of any real association between the predictor and the response. Hence, if we see a small p-value, then we can infer that there is an association between the predictor and the response. 
+
+---
+
+\frametitle{p-values}
+
+>- _Statistical significance_ is conventionally defined as a p-value less than 0.05, relative to some null hypothesis or prespecified value that would indicate no effect present.
+
+>- An estimate is said to be _not_ statistically significant if the observed value could reasonably be explained by simple chance variation.
+
+>- The possible outcomes of a hypothesis test are “reject” or “not reject.” It is never possible to “accept” a statistical hypothesis, only to find that the data are not sufficient to reject it.
+
+---
+
+\frametitle{p-values}
+
+Imagine flipping a coin 100 times and interpreting the results relative to some null probability model.
+
+What would the null model be in this context?
+
+---
+
+\frametitle{p-values}
+
+Imagine flipping a coin 100 times and interpreting the results relative to some null probability model.
+
+Null model: $P(\text{heads})=0.5$; this is a fair coin.
+
+---
+
+\frametitle{p-values}
+
+Imagine flipping a coin 100 times and interpreting the results relative to some null probability model.
+
+Null model: $P(\text{heads})=0.5$; this is a fair coin.
+
+\textbf{Results: 60 heads, 40 tails.}
+
+---
+
+\frametitle{p-values}
+
+Imagine flipping a coin 100 times and interpreting the results relative to some null probability model.
+
+Null model: $P(\text{heads})=0.5$; this is a fair coin.
+
+\textbf{Results: 55 heads, 45 tails.}
+
+\textbf{Would my p-value be large or small?}
+
+---
+
+\frametitle{p-values}
+
+Imagine flipping a coin 100 times and interpreting the results relative to some null probability model.
+
+Null model: $P(\text{heads})=0.5$; this is a fair coin.
+
+\textbf{Results: 70 heads, 30 tails.}
+
+\textbf{Would my p-value be large or small?}
+
+---
+
+\frametitle{p-values}
+
+* Does a small p-value mean that the observed association between X and Y is _important_?
+
+* Which of these models provides "better evidence" that X is associated with Y?
+
+---
+
+\frametitle{p-values}
+
+\tiny
+```{r, echo=FALSE}
+coefs <- data.table(model=paste0('Model ',1:4),
+                    estimate=c(0.5,3,0,0),
+                    lower=c(0.2,1,-2,-0.2),
+                    upper=c(0.8,5,2,0.2))
+ggplot(data=coefs,
+       aes(y=model,x=estimate,xmin=lower,xmax=upper)) +
+  geom_vline(xintercept = 0, linetype='dashed') + 
+  geom_linerange() + 
+  geom_point(size=3) + 
+  labs(y='',x='Coefficient estimate') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{p-values}
+
+\tiny
+```{r, echo=FALSE}
+coefs <- data.table(model=paste0('Model ',1:5),
+                    estimate=c(0.5,3,0,0,3),
+                    lower=c(0.2,1,-2,-0.2,-0.1),
+                    upper=c(0.8,5,2,0.2,6.1))
+ggplot(data=coefs,
+       aes(y=model,x=estimate,xmin=lower,xmax=upper)) +
+  geom_vline(xintercept = 0, linetype='dashed') + 
+  geom_linerange() + 
+  geom_point(size=3) + 
+  labs(y='',x='Coefficient estimate') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{p-values}
+
+\tiny
+```{r, echo=F}
+ggplot(data=msp_micro[educ=='4 years of college' & age %in% 25:64 & !is.na(hhincome),],
+       aes(x=age,y=hhincome)) + 
+  geom_hex(alpha=0.7) + 
+  geom_smooth(method='lm',color='black') +
+  scale_fill_viridis_c(option='plasma') + 
+  labs(x='Age', y='Household income') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{p-values}
+
+\tiny
+```{r, echo=F}
+msp_micro <- fread('https://raw.githubusercontent.com/ngraetz/soc5811/refs/heads/main/data/acs2023_hennepin.csv')
+summary(lm(hhincome~age, data=msp_micro[educ=='4 years of college' & age %in% 25:64 & !is.na(hhincome),]))
+```
+
+---
+
+\frametitle{p-values}
+
+$$\beta_1 = 5.5\,(95\%\,\text{CI:}\,4.0 - 7.0)^{*}$$
+
+$$\beta_1 = 5.5\,(0.75)^{*}$$
+
+---
+
+\frametitle{p-values}
+
+\begin{center}
+\includegraphics[width = 0.5\textwidth]{images/table2_example.png}
+\end{center}
+
+---
+
+\frametitle{p-values}
+
+>- Publication norms
+
+---
+
+\frametitle{Review}
+
+>- \textbf{Parameters} = the unknown numbers that determine a statistical model. 
+>- \textbf{Statistical inference} = a set of operations on data that yield estimates and uncertainty statements about predictions and parameters of some underlying process or population.
+>- \textbf{Sampling distribution} = the set of possible datasets that could have been observed if the data collection process had been re-done, along with the probabilities of these values.
+
+---
+
+\frametitle{Review}
+
+>- \textbf{Standard error} = a measure of the spread of sample means around the population mean; the standard deviation of the sampling distribution.  
+>- \textbf{95\% confidence interval} = +/- 2 standard errors
+>- \textbf{p-value} = the probability that the null model would produce a parameter estimate as extreme as your observed estimate.  
+>- \textbf{Statistical significance} = conventionally defined as a p-value less than 0.05, relative to some null hypothesis or prespecified value that would indicate no effect present.
