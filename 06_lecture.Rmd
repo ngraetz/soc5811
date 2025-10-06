@@ -1,0 +1,513 @@
+---
+title: "SOC-5811 Week 6: Simulation"
+author: "Nick Graetz"
+date: "10/6/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+## Libraries
+library(tidyverse)
+library(data.table)
+library(ggplot2)
+library(haven)
+library(formatR)
+library(marginaleffects)
+library(cowplot)
+# knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 20), tidy = TRUE)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE
+)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox,
+                  'Minnesota/repos/soc5811/figures/')
+data_dir <- paste0(dropbox,
+                   'Minnesota/repos/soc5811/data/')
+```
+
+---
+
+\frametitle{Review}
+
+>- Sampling distributions
+
+>- Statistical inference and p-values
+
+---
+
+\frametitle{Review}
+
+* \textbf{Standard deviation} = a measure of the spread of data around the sample mean. 
+
+$$\sigma=\sqrt{\frac{\sum(x_i-\mu)^2}{n}}$$
+
+* \textbf{Standard error} = a measure of the spread of sample means around the population mean; the standard deviation of the sampling distribution. 
+
+$$\text{Standard error}=\frac{\sigma}{\sqrt{n}}$$
+
+---
+
+\frametitle{Simulation}
+
+>- Last week was \textbf{statistical inference}: We _observe_ sample data $\longrightarrow$ we estimate the most likely _unknown_ population model that produced that sample data.
+
+>- This week is \textbf{simulation}: We _know_ the population model $\longrightarrow$ we simulate all the sample data is could plausibly produce (i.e., we simulate the _sampling distribution_). 
+
+---
+
+\frametitle{Simulation}
+
+Why is simulation an important concept/skill? 
+
+>- Develop statistical intuition without needing math.
+
+>- We can use simulation to approximate the sampling distribution of data and propagate this to the sampling distribution of statistical estimates (aka \textbf{bootstrapping}).
+
+>- Very important principle for more complex models: you can always simulate.
+
+---
+
+\frametitle{Simulation}
+
+>- Remember: this is all about understanding how we do \textbf{statistical inference}.
+
+>- What can I learn about the population model from the data I observe? 
+
+>- Are my sample parameters real, or could they plausibly have been observed by chance?
+
+---
+
+\frametitle{Simulation}
+
+\begin{center}
+\includegraphics[width = 0.5\textwidth]{images/table2_example.png}
+\end{center}
+
+---
+
+\frametitle{Simulation}
+
+\begin{center}
+\includegraphics[width = 0.5\textwidth]{images/table2_example2.png}
+\end{center}
+
+---
+
+\frametitle{This week: R skills}
+
+>- Functions in R
+
+>- Simulating in R
+
+>- Bootstrapping in R
+
+>- Introduction to multivariable models
+
+---
+
+\frametitle{Functions in R}
+
+\small
+```{r, echo=T}
+log(5)
+```
+
+---
+
+\frametitle{Functions in R}
+
+\small
+```{r, echo=T}
+new_function <- function(x) {
+  y <- x*10
+  return(y)
+}
+```
+
+---
+
+\frametitle{Functions in R}
+
+\small
+```{r, echo=T}
+new_function <- function(x) {
+  y <- x*10
+  return(y)
+}
+new_function(5)
+```
+
+---
+
+\frametitle{Functions in R}
+
+\small
+```{r, echo=T}
+new_function <- function(x) {
+  y <- x*10
+  return(y)
+}
+sapply(c(5,10,15,20), new_function)
+```
+
+---
+
+\frametitle{Simulation}
+
+>- Random variables
+
+>- Distributions:
+>   - Normal distribution
+>   - Binomial distribution
+
+>- \textbf{Simulation of random variables in R.}
+
+---
+
+\frametitle{Simulation}
+
+X = the number of heads I get if I flip a coin 100 times.
+
+X = Binomial(n=100, p=0.5)
+
+\small
+```{r, echo=TRUE}
+rbinom(n=1, size=100, prob=0.5)
+```
+
+---
+
+\frametitle{Simulation}
+
+\small
+```{r, echo=TRUE}
+rbinom(n=1, size=100, prob=0.5)
+rbinom(n=1, size=100, prob=0.5)
+rbinom(n=1, size=100, prob=0.5)
+```
+
+---
+
+\frametitle{Simulation}
+
+\small
+```{r, echo=TRUE}
+trials <- rbinom(n=10000, size=100, prob=0.5)
+trials <- data.table(heads=trials)
+head(trials)
+```
+
+---
+
+\frametitle{Simulation}
+
+\small
+```{r, echo=F}
+ggplot(data=trials,
+       aes(x=heads)) + 
+  geom_density(fill='lightgrey') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Simulation}
+
+\small
+```{r, echo=F}
+ggplot(data=trials,
+       aes(x=heads)) + 
+  geom_density(fill='lightgrey') + 
+  geom_vline(xintercept = 50, color='red', size=1) + 
+  theme_bw()
+```
+
+
+---
+
+\frametitle{Simulation}
+
+Imagine flipping a coin 100 times and interpreting the results relative to some null probability model.
+
+Null model: $P(\text{heads})=0.5$; this is a fair coin.
+
+\textbf{Results: 55 heads, 45 tails.}
+
+---
+
+\frametitle{Simulation}
+
+```{r, echo=F}
+ggplot(data=trials,
+       aes(x=heads)) + 
+  geom_density(fill='lightgrey') +
+  geom_vline(xintercept = 55, color='red', size=1) + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Simulation}
+
+```{r, echo=T}
+pbinom(55, 100, 0.5, lower.tail = FALSE)
+```
+
+---
+
+\frametitle{Simulation}
+
+Imagine flipping a coin 100 times and interpreting the results relative to some null probability model.
+
+Null model: $P(\text{heads})=0.5$; this is a fair coin.
+
+\textbf{Results: 55 heads, 45 tails.}
+
+\textbf{Is the hypothesis that this is a fair coin consistent with our data?}
+\textbf{Could a fair coin plausibly produce our data?}
+
+---
+
+\frametitle{Simulation}
+
+```{r, echo=F}
+ggplot(data=trials,
+       aes(x=heads)) + 
+  geom_density(fill='lightgrey') +
+  geom_vline(xintercept = 70, color='red', size=1) + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Simulation}
+
+```{r, echo=T}
+pbinom(70, 100, 0.5, lower.tail = FALSE)
+```
+
+---
+
+\frametitle{Simulation}
+
+\small
+```{r, echo=TRUE}
+mean_of_normal_trials <- function(i, ss) {
+  mean <- mean(rnorm(ss, 0, 5))
+  return(mean)
+}
+normal_trials <- function(ss) {
+  trials <- lapply(1:1000, 
+                   mean_of_normal_trials, 
+                   ss=ss)
+  trials <- data.table(sample_size=ss,
+                       mean=unlist(trials))
+  return(trials)
+}
+trials <- lapply(c(30,100,400), normal_trials)
+trials <- rbindlist(trials)
+```
+
+---
+
+\frametitle{Simulation}
+
+\tiny
+```{r, echo=F}
+ggplot(data=trials,
+         aes(x=mean)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    facet_wrap(~sample_size,nrow=1) + 
+    labs(x='Difference',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Simulation}
+
+\tiny
+```{r, echo=F}
+ggplot(data=trials,
+         aes(x=mean)) + 
+    geom_histogram(color=NA,fill='grey') + 
+    geom_vline(xintercept = 1, size=1, color='red') + 
+    facet_wrap(~sample_size,nrow=1) + 
+    labs(x='Difference',y='Count') + 
+    theme_bw()
+```
+
+---
+
+\frametitle{Bootstrapping}
+
+* Simulating a sampling distribution when you \textbf{do not know} the underlying probability model.
+
+* Randomly sample the \textbf{observed} data and calculate your statistic many times ("bootstrapping").
+
+---
+
+\frametitle{Bootstrap}
+
+\tiny
+```{r, echo=TRUE}
+psid <- fread('https://raw.githubusercontent.com/ngraetz/soc5811/refs/heads/main/data/psid.csv')
+psid <- psid %>%
+    filter(g3_house_value!=0)
+```
+
+---
+
+\frametitle{Bootstrap}
+
+\small
+```{r, echo=TRUE}
+mean_analytic <- psid %>% 
+  summarise(mean=mean(g3_house_value)) %>% 
+  pull(mean)
+se_analytic <- psid %>% 
+  summarise(se=sd(g3_house_value)/sqrt(nrow(psid))) %>%
+  pull(se)
+mean_analytic
+se_analytic
+```
+
+---
+
+\frametitle{Bootstrap}
+
+\small
+```{r, echo=T}
+get_sample <- function(i) {
+  random_sample <- psid %>%
+    sample_n(size=nrow(psid),replace=T) %>%
+    summarise(mean=mean(g3_house_value))
+  return(random_sample)
+}
+samples <- rbindlist(lapply(1:100,get_sample))
+```
+
+---
+
+\frametitle{Bootstrap}
+
+```{r, echo=F}
+ggplot(data=samples,
+       aes(x=mean)) + 
+  geom_density(fill='lightgrey') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Bootstrap}
+
+\small
+```{r, echo=TRUE}
+## Calculate standard error
+se_bootstrap <- samples %>%
+  summarise(sd=sd(mean)) %>%
+  pull(sd)
+
+## Compare
+se_analytic
+se_bootstrap
+```
+
+---
+
+\frametitle{Bootstrap}
+
+\small
+```{r, echo=FALSE}
+out <- data.table(model=c('Analytic','Bootstrap'),
+                  estimate=c(mean_analytic,mean_analytic),
+                  lower=c(mean_analytic-(2*se_analytic),mean_analytic-(2*se_bootstrap)),
+                  upper=c(mean_analytic+(2*se_analytic),mean_analytic+(2*se_bootstrap))) 
+ggplot(data=out,
+       aes(y=model,x=estimate,xmin=lower,xmax=upper)) +
+  geom_linerange() + 
+  geom_point(size=3) + 
+  labs(y='',x='Estimate') + 
+  theme_bw() 
+```
+
+---
+
+\frametitle{Bootstrap}
+
+\small
+```{r, echo=F}
+psid_subset <- psid %>%
+  filter(!is.na(g1_edu_cat) & g3_house_value!=0) %>% 
+  mutate(above_hs=ifelse(g1_edu_cat %in% c('less_hs','hs'), 'less', 'more'))
+```
+
+
+\small
+```{r, echo=TRUE}
+psid_subset <- psid %>%
+  filter(!is.na(g1_edu_cat) & g3_house_value!=0) %>% 
+  mutate(above_hs=ifelse(g1_edu_cat %in% c('less_hs','hs'), 
+                         'less', 'more'))
+
+get_sample <- function(i) {
+  random_sample <- psid_subset %>%
+    sample_n(size=nrow(psid_subset),replace=T) 
+  model <- lm(g3_house_value_percentile~above_hs,
+            data=random_sample)
+  out <- avg_slopes(model)
+  return(out)
+}
+coef_samples <- rbindlist(lapply(1:100,get_sample))
+```
+
+---
+
+\frametitle{Bootstrap}
+
+```{r, echo=F}
+ggplot(data=coef_samples,
+       aes(x=estimate)) + 
+  geom_density(fill='lightgrey') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Bootstrap}
+
+\small
+```{r, echo=TRUE}
+## Compare to lm()
+model <- lm(g3_house_value_percentile~above_hs,
+            data=psid_subset)
+analytic_coefs <- as.data.table(avg_slopes(model))
+```
+
+---
+
+\frametitle{Bootstrap}
+
+\tiny
+```{r, echo=F}
+out <- data.table(model=c('Analytic','Bootstrap'),
+                  estimate=c(analytic_coefs$estimate,analytic_coefs$estimate),
+                  lower=c(analytic_coefs$conf.low,analytic_coefs$estimate-(2*sd(coef_samples$estimate))),
+                  upper=c(analytic_coefs$conf.high,analytic_coefs$estimate+(2*sd(coef_samples$estimate)))) 
+ggplot(data=out,
+       aes(y=model,x=estimate,xmin=lower,xmax=upper)) +
+  geom_vline(xintercept = 0, linetype='dashed') + 
+  geom_linerange() + 
+  geom_point(size=3) + 
+  labs(y='',x='Estimate') + 
+  theme_bw()
+```
+
