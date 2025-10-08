@@ -18,6 +18,7 @@ library(haven)
 library(formatR)
 library(marginaleffects)
 library(cowplot)
+library(palmerpenguins)
 # knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 20), tidy = TRUE)
 knitr::opts_chunk$set(
  fig.width = 6,
@@ -30,6 +31,7 @@ fig_dir <- paste0(dropbox,
                   'Minnesota/repos/soc5811/figures/')
 data_dir <- paste0(dropbox,
                    'Minnesota/repos/soc5811/data/')
+draws <- 1000
 ```
 
 ---
@@ -391,7 +393,7 @@ get_sample <- function(i) {
     summarise(mean=mean(g3_house_value))
   return(random_sample)
 }
-samples <- rbindlist(lapply(1:100,get_sample))
+samples <- rbindlist(lapply(1:draws,get_sample))
 ```
 
 ---
@@ -466,7 +468,7 @@ get_sample <- function(i) {
   out <- avg_slopes(model)
   return(out)
 }
-coef_samples <- rbindlist(lapply(1:100,get_sample))
+coef_samples <- rbindlist(lapply(1:draws,get_sample))
 ```
 
 ---
@@ -510,4 +512,315 @@ ggplot(data=out,
   labs(y='',x='Estimate') + 
   theme_bw()
 ```
+
+---
+
+\frametitle{Review}
+
+>- Sampling distributions, statistical inference, and p-values.
+
+>- What do we need to calculate? 
+>   - \textbf{Standard errors / confidence intervals}.
+
+---
+
+\frametitle{Review}
+
+How do we calculate standard errors / confidence intervals?
+
+>- \textbf{Analytic approach:} Use formulas. 
+
+>- \textbf{Simulation approach:} Look at the variation in many random samples (with replacement) from the data, which can be taken as an approximation to the sampling distribution of our data collection process; that is, possible data we could have seen, had the data collection been conducted again in the same population.
+
+---
+
+\frametitle{Review}
+
+\small
+```{r, eval=F, echo=T}
+bootstrap <- function(i) {
+  1. Randomly sample with replacement from 
+     our data.
+  2. Calculate our target stat.
+}
+3. Bootstrap many times to approximate the 
+   sampling distribution of our target stat. 
+4. Standard error = standard deviation of 
+   the sampling distribution.
+```
+
+---
+
+\frametitle{Review}
+
+$$y_i=\beta_0+\beta_1X$$
+
+>- Estimate standard errors / confidence intervals. 
+
+>- Estimate likelihood we may have seen a result as extreme or more extreme than our observed result if some null model were true. 
+
+>- Infer something about the population model!
+
+---
+
+\frametitle{Regression with multiple variables}
+
+Why would we want to add multiple predictor variables? 
+
+---
+
+\frametitle{Regression with multiple variables}
+
+Why would we want to add multiple predictor variables? 
+
+>- Prediction: few social science processes can be accounted for by a single explanatory variable (i.e., our predictions will be crude). 
+
+>- Comparison: 
+>   - Some descriptive comparisons involve more than one variable: "Within states, what is the average association between income and happiness?"
+>   - Causal inference: omitted variable bias and confounding in interpreting a comparison as _the effect_ of the independent variable on the dependent variable (i.e., _if_ I change the independent variable, _then_ the dependent variable will change).
+
+---
+
+\frametitle{Simpson's paradox}
+
+\textbf{Simpson's paradox}
+
+>- Aggregation problem: an association may not be true for all subgroups (i.e., the problem is we are _generalizing_ a high level pattern to lower levels). 
+>- Thinking about Simpson's paradox is useful for understanding why we need to be really specific about our research questions. 
+
+---
+
+\frametitle{Simpson's paradox}
+
+Data on 344 penguins were collected and made available by Dr. Kristen Gorman and the Palmer Station, Antarctica LTER, a member of the Long Term Ecological Research Network.
+
+\begin{center}
+\includegraphics[width = 0.7\textwidth]{images/penguin1.png}
+\end{center}
+
+---
+
+\frametitle{Simpson's paradox}
+
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{images/penguin2.png}
+\end{center}
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=T}
+penguin_df <- 
+  palmerpenguins::penguins %>%
+  na.omit()
+head(penguin_df)
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm)) + 
+  geom_point(size=3) + 
+  labs(x="Length", y="Depth") +
+  theme_bw()
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm)) + 
+  geom_point(size=3) + 
+  geom_smooth(method='lm',se=F,color='red',size=1) + 
+  labs(x="Length", y="Depth") +
+  theme_bw()
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=T}
+summary(lm(bill_depth_mm ~ bill_length_mm, data = penguin_df))
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  # geom_smooth(method='lm',se=F,color='red',size=1) + 
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  geom_smooth(method='lm',se=F,size=1, color='red') +
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=T}
+summary(lm(bill_depth_mm ~ bill_length_mm + species, data = penguin_df))
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\small
+```{r, echo=T}
+penguin_df <- penguin_df %>% 
+  group_by(species) %>% 
+  mutate(bill_depth_mm_demeaned = 
+           bill_depth_mm - mean(bill_depth_mm),
+         bill_length_mm_demeaned = 
+           bill_length_mm - mean(bill_length_mm))
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm_demeaned, y=bill_depth_mm_demeaned , fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm_demeaned, y=bill_depth_mm_demeaned, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  geom_smooth(aes(x=bill_length_mm_demeaned, y=bill_depth_mm_demeaned), method='lm',se=F,size=1, color='red', inherit.aes = F) +
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=T}
+summary(lm(bill_depth_mm_demeaned ~ bill_length_mm_demeaned, data = penguin_df))
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\textbf{Simpson's paradox}
+
+>- It's not really a "paradox" - it just depends what _specific comparison_ you're interested in and how you are trying to _generalize_!
+
+---
+
+\frametitle{Simpson's paradox}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm)) + 
+  geom_point(size=3) + 
+  geom_smooth(method='lm',se=F,color='red',size=1) + 
+  labs(x="Length", y="Depth") +
+  theme_bw()
+```
+
+---
+
+\frametitle{Simpson's paradox}
+
+\textbf{Simpson's paradox}
+
+>- It is an empirical fact that across all penguins, bill depth is negatively associated with bill length. This is not itself "wrong" in some empirical sense - it only becomes wrong when we start generalizing that all-species pattern to any specific species.
+
+>- Whether this is a "problem" depends on the research question; in this case, the all-species pattern, while empirically measurable, is likely not _useful_ for any research question. 
+
+---
+
+\frametitle{Simpson's paradox}
+
+>- In the early 1970s, UC Berkeley was sued for gender discrimination over admission to graduate school. 
+
+---
+
+\frametitle{Simpson's paradox}
+
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{images/simpsons1.png}
+\end{center}
+
+---
+
+\frametitle{Simpson's paradox}
+
+>- Women disproportionately applied to departments with low acceptance rates while men disproportionately applied to departments with high acceptance rates.
+
+---
+
+\frametitle{Simpson's paradox}
+
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{images/simpsons2.png}
+\end{center}
+
+---
+
+\frametitle{Simpson's paradox}
+
+>- What do we make of this?
+
+>- It depends what we care about and our research question. 
+
+>- Gender wage gap example.
+
+---
+
+\frametitle{Regression with multiple variables}
+
+Causal inference
+
+>- People who drink more wine live longer.
+
 
