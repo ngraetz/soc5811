@@ -1,0 +1,424 @@
+---
+title: "SOC-5811 Week 7: Regression with multiple variables"
+author: "Nick Graetz"
+date: "10/13/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+## Libraries
+library(tidyverse)
+library(data.table)
+library(ggplot2)
+library(haven)
+library(formatR)
+library(marginaleffects)
+library(cowplot)
+library(fastDummies)
+# knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 20), tidy = TRUE)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE
+)
+dropbox <- 'C:/Users/ngraetz/Dropbox/'
+fig_dir <- paste0(dropbox,
+                  'Minnesota/repos/soc5811/figures/')
+data_dir <- paste0(dropbox,
+                   'Minnesota/repos/soc5811/data/')
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+\tiny
+```{r, echo=T}
+penguin_df <- 
+  palmerpenguins::penguins %>%
+  na.omit()
+head(penguin_df)
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+What happens if we use a categorical predictor variable with \textbf{two} levels? 
+
+$$y_i=\beta_0+\beta_1(\text{Sex})$$
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+\tiny
+```{r, echo=T}
+summary(lm(bill_depth_mm ~ sex, data=penguin_df))
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+\tiny
+```{r, echo=T}
+penguin_df <- penguin_df %>%
+ dummy_cols('sex')
+penguin_df %>% 
+  select(species,bill_length_mm,bill_depth_mm,sex,sex_female,sex_male)
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+\tiny
+```{r, echo=T}
+summary(lm(bill_depth_mm ~ sex_male, data=penguin_df))
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+>- Do I need to add both dummy variables to my regression model? Why or why not?
+
+\tiny
+```{r, echo=T}
+penguin_df %>% 
+  select(species,bill_length_mm,bill_depth_mm,sex,sex_female,sex_male)
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+\tiny
+```{r, echo=T}
+summary(lm(bill_depth_mm ~ sex_male + sex_female, data=penguin_df))
+```
+
+---
+
+\frametitle{Review multicollinearity}
+
+>- The problem of \textbf{multicollinearity}.
+
+>- In a regression model, you can't have predictors that are a perfect function of one another. In other words, you can't have perfect \textbf{multicollinearity} where predictors are perfectly correlated with one another. 
+
+>- Why?
+
+---
+
+\frametitle{Review}
+
+1. Choose a functional form for the model.
+
+$$\text{depth}_i=\beta_0+\beta_1{\text{sex\_male}}+\beta_2{\text{sex\_female}}+\epsilon_i$$
+
+2. Choose an estimator (i.e., objective function) that relates the model to real observed data (e.g., OLS).
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+3. Fit the model (e.g., estimate parameters) by optimizing the objective function.
+
+---
+
+\frametitle{Review multicollinearity}
+
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{images/ss_example.png}
+\end{center}
+
+---
+
+\frametitle{Review multicollinearity}
+
+>- If you provide a categorical predictor variable to lm(), the default behavior is to transform it into N-1 dummy variables where N is the number of unique levels.
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+\tiny
+```{r, echo=T}
+penguin_df <- penguin_df %>%
+ dummy_cols('species')
+head(penguin_df)
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+\tiny
+```{r, echo=T}
+summary(lm(bill_depth_mm ~ species_Adelie + species_Gentoo + species_Chinstrap, 
+           data=penguin_df))
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+\tiny
+```{r, echo=T}
+penguin_df <- penguin_df %>%
+  mutate(species = factor(species, levels=c('Chinstrap','Adelie','Gentoo')))
+summary(lm(bill_depth_mm ~ species, data = penguin_df))
+```
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+$$y_i=\beta_0+\beta_1(\text{Adelie}) + \beta_2(\text{Gentoo})$$
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+$$y_i=\beta_0+\beta_1(\text{Adelie}) + \beta_2(\text{Gentoo})$$
+
+$$y_i=(18.42)+(-0.07)(\text{Adelie}) + (-3.42)(\text{Gentoo})$$
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+$$y_i=\beta_0+\beta_1(\text{Adelie}) + \beta_2(\text{Gentoo})$$
+
+$$y_i=(18.42)+(-0.07)(\text{Adelie}) + (-3.42)(\text{Gentoo})$$
+
+$$E[Y|\text{species}=\text{Adelie}] = (18.42)+(-0.07)(1) + (-3.42)(0)=\bm{18.35}$$
+
+---
+
+\frametitle{Review categorical predictor variables}
+
+$$y_i=\beta_0+\beta_1(\text{Adelie}) + \beta_2(\text{Gentoo})$$
+
+$$y_i=(18.42)+(-0.07)(\text{Adelie}) + (-3.42)(\text{Gentoo})$$
+
+$$E[Y|\text{species}=\text{Adelie}] = (18.42)+(-0.07)(1) + (-3.42)(0)=\bm{18.35}$$
+
+$$E[Y|\text{species}=\text{Chinstrap}] = (18.42)+(-0.07)(0) + (-3.42)(0)=\bm{18.42}$$
+
+---
+
+\frametitle{Multiple predictors}
+
+>- The coefficient $\beta_k$ is the average or expected difference in outcome y, comparing two people who
+differ by one unit in the predictor $x_k$ while being equal in all the other predictors. This is sometimes
+stated in shorthand as comparing two people (or, more generally, two observational units) that differ
+in $x_k$ with all the other predictors held constant.
+
+---
+
+\frametitle{Multiple predictors}
+
+\tiny
+```{r, echo=T}
+mod <- lm(bill_depth_mm ~ bill_length_mm + species, data = penguin_df)
+summary(mod)
+```
+
+---
+
+\frametitle{Multiple predictors}
+
+>- $\beta_0=8.63$: If a penguin is a Chinstrap penguin with a bill length of 0, then we would predict this penguin to have a bill depth of \textbf{8.63.}
+>- $\beta_1=0.20$: Comparing penguins within the same species but whose bill lengths differ by 1, we would predict their difference in bill depths to be \textbf{0.20.}
+>- $\beta_2=1.93$: Comparing penguins who have the same bill length but one is Chinstrap and one is Adelie, we would predict their difference in bill depths to be \textbf{1.93.} 
+>- $\beta_3=-3.17$: Comparing penguins who have the same bill length but one is Chinstrap and one is Gentoo, we would predict their difference in bill depths to be \textbf{3.17.} 
+
+---
+
+\frametitle{Multiple predictors}
+
+What are we interpreting?
+
+>- Regression is a way of making comparisons; it is very important to understand and be able to articulate the comparison you are making.
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+$$\beta_1=E[d|l=x+1,s]-E[d|l=x,s]=\bm{0.20}$$
+
+$$\beta_2=E[d|s=\text{Adelie}, l]-E[d|s=\text{Chinstrap}, l]=\bm{1.93}$$
+
+$$\beta_3=E[d|s=\text{Gentoo}, l]-E[d|s=\text{Chinstrap}, l]=\bm{-3.17}$$
+
+---
+
+\frametitle{Holding something constant}
+
+\tiny
+```{r, echo=F}
+penguin_df <- penguin_df %>% 
+  group_by(species) %>% 
+  mutate(bill_depth_mm_demeaned = 
+           bill_depth_mm - mean(bill_depth_mm),
+         bill_length_mm_demeaned = 
+           bill_length_mm - mean(bill_length_mm))
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm_demeaned, y=bill_depth_mm_demeaned, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  geom_smooth(aes(x=bill_length_mm_demeaned, y=bill_depth_mm_demeaned), method='lm',se=F,size=1, color='red', inherit.aes = F) +
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Multiple predictors}
+
+\tiny
+```{r, echo=T}
+mod <- lm(bill_depth_mm ~ bill_length_mm + species, data = penguin_df)
+predictions <- tibble(depth_preds = predictions(mod)$estimate)
+penguin_df <- penguin_df %>%
+  bind_cols(., predictions)
+penguin_df %>% select(species,bill_length_mm,bill_depth_mm,depth_preds) %>% head()
+```
+
+---
+
+\frametitle{Multiple predictors}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  geom_line(aes(y=depth_preds),size=1,color='red') + 
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Interactions}
+
+>- In our model, the slope of the regression for bill length was forced to be equal across all subgroups defined by species. In other words, we just have one $\beta_1$. 
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s_i)$$
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+$$d_i=(l_i)+(s_i)+(l_i\times s_i)$$
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)+\beta_4(s^\text{Adelie}_i\times l_i)+\beta_5(s^\text{Gentoo}_i\times l_i)$$
+
+---
+
+\frametitle{Interactions}
+
+* No interaction:
+
+$$d_i=l_i+s_i$$
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+* With interaction:
+
+$$d_i=l_i+s_i+(l_i\times s_i)$$
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)+\beta_4(s^\text{Adelie}_i\times l_i)+\beta_5(s^\text{Gentoo}_i\times l_i)$$
+
+---
+
+\frametitle{Interactions}
+
+\tiny
+```{r, echo=T}
+mod2 <- lm(bill_depth_mm ~ bill_length_mm * species, data = penguin_df)
+summary(mod2)
+```
+
+---
+
+\frametitle{Interactions}
+
+\tiny
+```{r, echo=F}
+predictions2 <- tibble(depth_preds2 = predictions(mod2)$estimate)
+penguin_df <- penguin_df %>%
+  bind_cols(., predictions2)
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  geom_line(aes(y=depth_preds),size=1,color='red') + 
+  geom_line(aes(y=depth_preds2),size=1,color='black') + 
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Interactions}
+
+\tiny
+```{r, echo=T}
+mod3 <- lm(bill_depth_mm ~ bill_length_mm * body_mass_g, data = penguin_df)
+summary(mod3)
+```
+
+---
+
+\frametitle{Review: Why multiple variables?}
+
+>- Social process are typically not the function of one independent variable
+
+>- Simpsons paradox
+
+>- "Holding constant" = "Comparing two items $i$ and $j$ that differ by an amount $x$ on predictor $k$ but are identical on all other predictors, the predicted difference $y_i - y_j$ is $B_k(x)$, on average."
+
+---
+
+\frametitle{Review: Why multiple variables?}
+
+Different research questions:
+
+>- What is the average bill depth of Chinstrap penguins?
+>- What is the difference in average bill depth between Chinstrap and Adelie penguins?
+>- What is the difference in average bill depth between Chinstrap and Adelie penguins who have the same bill length?
+>- What is the difference in average bill depth between penguins of the same species who differ in length by 1? 
+
+---
+
+\frametitle{Confounding}
+
+>- Review Simpson's Paradox
+
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{images/simpsons2.png}
+\end{center}
+
+---
+
+\frametitle{Confounding}
+
+$$\text{Admission}=\beta_0+\beta_1(\text{Gender})$$
+
+$$\text{Admission}=\beta_0+\beta_1(\text{Gender})+\beta_2(\text{Department})$$
+
+---
+
+\frametitle{Confounding}
+
+>- Do not listen to anyone who says "Well, you _have_ to control for X." 
+
+>- What they are really saying: "The comparison in which you are not controlling for X is not useful; I'm assuming you want to make the comparison where you control for X." This can be an argument on theoretical grounds about the utility of various research questions.
+
+>- There may be very good reasons to control for X! But it _completely_ depends on your research question; more specifically, exactly what \textbf{comparison} you say you're trying to make. 
+
+>- Transition to causal inference and the idea of _confounding_. 
