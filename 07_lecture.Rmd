@@ -240,9 +240,55 @@ summary(mod)
 
 ---
 
+\frametitle{Review}
+
+>- On the board: health as a function of income and wealth. 
+
+>- The coefficients of each variable are capturing variation _independent_ of the other variable, or _marginal_ to the other variable. To estimate the coefficient of income on health, we are using variation in our data that is mechanically unrelated to wealth; in other words, differences \textbf{cannot} be attributable to wealth because we are only comparing units with the same level of wealth.
+
+---
+
+\frametitle{Review}
+
+>- $\text{health}=\beta_0+\beta_1\text{income}+\beta_2\text{wealth}$
+
+>- The effects of each variable are also _independent_ of each other. My estimated coefficient of income is the same no matter what level of wealth I'm using. I'm averaging over the differences within any given level of wealth to arrive at an overall _average_ coefficient for income on health. 
+
+>- We may be averaging over interesting variation. We could imagine the effect of income on health _depends_ on level of wealth. We may want to estimate an _interaction_ between income and wealth. 
+
+---
+
 \frametitle{Multiple predictors}
 
-What are we interpreting?
+>- Regression is a way of making comparisons; it is very important to understand and be able to articulate the comparison you are making.
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+---
+
+\frametitle{Multiple predictors}
+
+>- Regression is a way of making comparisons; it is very important to understand and be able to articulate the comparison you are making.
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+$$\beta_1=E[d|l=x+1,s]-E[d|l=x,s]=\bm{0.20}$$
+
+---
+
+\frametitle{Multiple predictors}
+
+>- Regression is a way of making comparisons; it is very important to understand and be able to articulate the comparison you are making.
+
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+$$\beta_1=E[d|l=x+1,s]-E[d|l=x,s]=\bm{0.20}$$
+
+$$\beta_2=E[d|s=\text{Adelie}, l]-E[d|s=\text{Chinstrap}, l]=\bm{1.93}$$
+
+---
+
+\frametitle{Multiple predictors}
 
 >- Regression is a way of making comparisons; it is very important to understand and be able to articulate the comparison you are making.
 
@@ -256,7 +302,18 @@ $$\beta_3=E[d|s=\text{Gentoo}, l]-E[d|s=\text{Chinstrap}, l]=\bm{-3.17}$$
 
 ---
 
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+>- How many estimates do we have of the association between bill length and depth? 
+
+>- We just have one estimate ($\beta_1$) regardless of whether we control for species.
+
+---
+
 \frametitle{Holding something constant}
+
+\tiny
+$$d_i=\beta_0+\beta_1(l_i)$$
 
 \tiny
 ```{r, echo=F}
@@ -266,6 +323,24 @@ penguin_df <- penguin_df %>%
            bill_depth_mm - mean(bill_depth_mm),
          bill_length_mm_demeaned = 
            bill_length_mm - mean(bill_length_mm))
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  geom_smooth(aes(x=bill_length_mm, y=bill_depth_mm), method='lm',se=F,size=1, color='red', inherit.aes = F) +
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Holding something constant}
+
+\tiny
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+\tiny
+```{r, echo=F}
 ggplot(data=penguin_df,
        aes(x=bill_length_mm_demeaned, y=bill_depth_mm_demeaned, fill=species)) + 
   geom_point(shape=21,size=3) + 
@@ -280,20 +355,14 @@ ggplot(data=penguin_df,
 \frametitle{Multiple predictors}
 
 \tiny
-```{r, echo=T}
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
+
+\tiny
+```{r, echo=F}
 mod <- lm(bill_depth_mm ~ bill_length_mm + species, data = penguin_df)
 predictions <- tibble(depth_preds = predictions(mod)$estimate)
 penguin_df <- penguin_df %>%
   bind_cols(., predictions)
-penguin_df %>% select(species,bill_length_mm,bill_depth_mm,depth_preds) %>% head()
-```
-
----
-
-\frametitle{Multiple predictors}
-
-\tiny
-```{r, echo=F}
 ggplot(data=penguin_df,
        aes(x=bill_length_mm, y=bill_depth_mm, fill=species)) + 
   geom_point(shape=21,size=3) + 
@@ -309,29 +378,19 @@ ggplot(data=penguin_df,
 
 >- In our model, the slope of the regression for bill length was forced to be equal across all subgroups defined by species. In other words, we just have one $\beta_1$. 
 
-$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s_i)$$
+$$d_i=l_i+s_i$$
 
 $$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
-
-$$d_i=(l_i)+(s_i)+(l_i\times s_i)$$
-
-$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)+\beta_4(s^\text{Adelie}_i\times l_i)+\beta_5(s^\text{Gentoo}_i\times l_i)$$
 
 ---
 
 \frametitle{Interactions}
 
-* No interaction:
-
-$$d_i=l_i+s_i$$
-
-$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)$$
-
-* With interaction:
+>- Now how many coefficients do we have for length?
 
 $$d_i=l_i+s_i+(l_i\times s_i)$$
 
-$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)+\beta_4(s^\text{Adelie}_i\times l_i)+\beta_5(s^\text{Gentoo}_i\times l_i)$$
+$$d_i=\beta_0+\beta_1(l_i)+\beta_2(s^\text{Adelie}_i)+\beta_3(s^\text{Gentoo}_i)+\beta_4(l_i \times s^\text{Adelie}_i)+\beta_5(l_i \times s^\text{Gentoo}_i)$$
 
 ---
 
@@ -388,10 +447,10 @@ summary(mod3)
 
 Different research questions:
 
->- What is the average bill depth of Chinstrap penguins?
->- What is the difference in average bill depth between Chinstrap and Adelie penguins?
->- What is the difference in average bill depth between Chinstrap and Adelie penguins who have the same bill length?
->- What is the difference in average bill depth between penguins of the same species who differ in length by 1? 
+>- What is the average association between grandparent wealth and grandchild wealth?
+>- What is the difference in grandchild wealth by grandparent race?
+>- What is the average association between grandparent wealth and grandchild wealth conditional on race (i.e., comparing grandparents within the same race)? 
+>- What is the difference in the average association between grandparent wealth and grandchild wealth by race?
 
 ---
 
@@ -421,4 +480,36 @@ $$\text{Admission}=\beta_0+\beta_1(\text{Gender})+\beta_2(\text{Department})$$
 
 >- There may be very good reasons to control for X! But it _completely_ depends on your research question; more specifically, exactly what \textbf{comparison} you say you're trying to make. 
 
->- Transition to causal inference and the idea of _confounding_. 
+>- We are transitioning to causal inference and the concept of _confounding_. 
+
+---
+
+\frametitle{Confounding}
+
+>- I'm curious whether people who drink more wine live longer.
+
+>- I do a huge survey where I follow people over time and track how much wine they drink and if they die.
+
+>- I fit the regression model: $\text{mortality rate}=\beta_0+\beta_1\text{wine}$.
+
+>- People who drink more wine are less likely to die (p<0.05)!
+
+>- People who drank more wine are less likely to die _because_ they drank more wine; _if_ people drink more wine, _then_ they will be less likely to die. 
+
+---
+
+\frametitle{Confounding}
+
+\small
+$$\text{mortality rate}=\beta_0+\beta_1\text{wine}+\beta_2\text{age}+\beta_3\text{income}+\beta_4\text{education}+\beta_5\text{social}$$
+
+>- People who drink more wine are less likely to die comparing within levels of age, income, education, and social networks (p<0.05)!
+
+---
+
+\frametitle{Confounding}
+
+$$\text{mortality rate}=\beta_0+\beta_1\text{wine}$$
+
+How might we avoid having to control for so many things? In other words, how might we guarantee the _only_ difference across our comparisons of drinking is the drinking?
+
