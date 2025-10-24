@@ -1,0 +1,673 @@
+---
+title: "SOC-5811 Week 8: Introduction to causal inference"
+author: "Nick Graetz"
+date: "10/20/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Multiple predictors}
+
+>- The coefficient $\beta_k$ is the average or expected difference in outcome y, comparing two people who
+differ by one unit in the predictor $x_k$ while being equal in all the other predictors. This is sometimes
+stated in shorthand as comparing two people (or, more generally, two observational units) that differ
+in $x_k$ with all the other predictors held constant.
+
+>- A one unit increase in $X$ is associated with a $\beta_x$ increase in $Y$, all else constant. 
+
+---
+
+\frametitle{Multiple predictors}
+
+$$y_i=X_i+Z_i$$
+
+I want to estimate the effect of $X$ on $Y$ conditional on $Z$ and I believe the effect of $X$ does not _depend_ on the level of $Z$. These effects are _independent_ of one another.
+
+---
+
+\frametitle{Multiple predictors}
+
+$$y_i=X_i+Z_i+(X_i\times Z_i)$$
+
+I want to estimate the effect of $X$ on $Y$ conditional on $Z$, but I also believe the effect of $X$ _depends_ on the level of $Z$. 
+
+---
+
+\frametitle{Multiple predictors}
+
+>- What kind of hypotheses do interaction terms let me examine? What does an estimate of 0 on an interaction term mean?
+
+>- \textbf{Interaction coefficient:} Tests whether the effect of $X$ is different across levels of $Z$. 
+
+---
+
+\frametitle{Review}
+
+\textbf{Research Question:} What is the average association between income and commute time across the twin cities, controlling for city? 
+
+* $Y$ = commute time (continuous)
+* $X$ = income (continuous)
+* $Z$ = city (categorical: Minneapolis, St Paul)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\beta_1(X)+\boxed{\beta_2}(Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+\frametitle{Review}
+
+\textbf{Research Question:} Is the average association between income and commute time different depending on the city? 
+
+* $Y$ = commute time (continuous)
+* $X$ = income (continuous)
+* $Z$ = city (categorical: Minneapolis, St Paul)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z)+\beta_3(X \times Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+\frametitle{Review}
+
+\textbf{What is the null hypothesis here?}
+
+* $Y$ = commute time (continuous)
+* $X$ = income (continuous)
+* $Z$ = city (categorical: Minneapolis, St Paul)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z)+\beta_3(X \times Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+$$y_i=\beta_0+\beta_1(\text{income})+\beta_2(\text{city=M})+\boxed{\beta_3}(\text{income} \times \text{city=SP})$$
+
+---
+
+$$y_i=10+3(\text{income})+20(\text{city=M})+\boxed{0}(\text{income} \times \text{city=SP})$$
+
+>- What is the effect of income on commute time in Minneapolis? 
+
+>- What is the effect of income on commute time in St Paul? 
+
+>- What is the difference in the effect of income on commute time between St Paul and Minneapolis?
+
+---
+
+\frametitle{Causal inference}
+
+>- Transitioning to causal inference: How do I know if X has a _causal effect_ on Y?
+
+---
+
+\frametitle{Confounding}
+
+>- I'm curious whether people who drink more wine live longer.
+
+>- I do a huge survey where I follow people over time and track how much wine they drink and if they die.
+
+>- I fit the regression model: $\text{mortality rate}=\beta_0+\beta_1\text{wine}$.
+
+>- People who drink more wine are less likely to die (p<0.05)!
+
+>- \textbf{Interpretation:} People who drank more wine are less likely to die _because_ they drank more wine; _if_ people drink more wine, _then_ they will be less likely to die. 
+
+---
+
+\frametitle{Confounding}
+
+>- \textbf{Interpretation:} People who drank more wine are less likely to die _because_ they drank more wine; _if_ people drink more wine, _then_ they will be less likely to die. 
+
+How might I get a coefficient estimate that is closer to this interpretation?
+
+---
+
+\frametitle{Confounding}
+
+\small
+$$\text{mortality rate}=\beta_0+\beta_1\text{wine}+\beta_2\text{age}+\beta_3\text{income}+\beta_4\text{education}+\beta_5\text{social}$$
+
+>- People who drink more wine are less likely to die comparing within levels of age, income, education, and social networks (p<0.05)!
+
+---
+
+\frametitle{Confounding}
+
+$$\text{mortality rate}=\beta_0+\beta_1\text{wine}$$
+
+How might we avoid having to control for so many things? In other words, how might we guarantee the _only_ difference across our comparisons of drinking is the drinking?
+
+---
+
+\frametitle{DAGs}
+
+Directed acyclic graphs (DAGs) are a way of graphically modelling our data generating process.
+
+>- \textbf{Nodes:} random variables.
+
+>- \textbf{Arrows:} causal effects between two nodes that move in the direction of the arrow.
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,1) {$\text{Wine}$};
+		\node (2) at (7,1) {$\text{Mortality}$};
+
+		\draw [,->] (1) to (2);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{DAGs}
+
+Ground rules:
+
+>- Causality runs in one direction: forward through time.
+
+>- DAGs represent chains of events. 
+
+>- DAGs operate in counterfactuals: use use them to compare hypothetical worlds, scenarios, interventions.
+
+---
+
+\frametitle{DAGs}
+
+Why DAGs? 
+
+>- Force you to think carefully about the logic of how different variables are related to each other.
+
+>- Writing out a DAG prior to your analysis highlights the necessity of bringing in substantive, or domain, knowledge into your study. 
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$\text{Income}$};
+		\node (2) at (6,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to (3);
+		
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$\text{Income}$};
+		\node (2) at (6,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+
+		\draw [color=red,ultra thick,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to (3);
+		
+		\path (1) -- node [text width=1.5cm,midway,above=0.05em,align=center,color=red] {Backdoor path} (2);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+--- 
+
+\frametitle{Confounding}
+
+In this case, if we are interested in the causal effect of wine on mortality, we would say that \textbf{income} acts as a \textbf{confounder}. Because income may have an effect on both wine drinking and mortality risk, the effect of wine estimated with a model not controlling for income would be at least partially spurious. 
+
+\small
+$$\text{mortality rate}=\beta_0+\beta_1\text{wine}+\beta_2\text{income}$$
+
+---
+
+\frametitle{Mediation}
+
+>- \textbf{Mediators:} Variables along the causal pathway between our key treatment and the outcome. 
+
+>- Mediators, mechanisms, etc. 
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$\text{Income}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (4) at (1,-3) {$\text{U}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+		\draw [dashed,->] (4) to [bend left=20] (2);
+		\draw [dashed,->] (4) to [bend right=20] (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{Review}
+
+>- Return on Wednesday.
+
+---
+
+\frametitle{Review}
+
+\textbf{Research Question:} What is the difference in grandchild wealth by grandparent race, controlling for grandparent wealth?
+
+* $Y$ = grandchild wealth (continuous)
+* $X$ = grandparent wealth (continuous)
+* $Z$ = grandparent race (categorical: Black, White)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\beta_1(X)+\boxed{\beta_2}(Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+\frametitle{Review}
+
+\textbf{Research Question:} What is the difference in the average association between grandparent wealth and grandchild wealth by race?
+
+* $Y$ = grandchild wealth (continuous)
+* $X$ = grandparent wealth (continuous)
+* $Z$ = grandparent race (categorical: Black, White)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\beta_1(X)+\boxed{\beta_2}(Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+\frametitle{Review}
+
+\textbf{Research Question:} What is the average association between grandparent wealth and grandchild wealth?
+
+* $Y$ = grandchild wealth (continuous)
+* $X$ = grandparent wealth (continuous)
+* $Z$ = grandparent race (categorical: Black, White)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\beta_1(X)+\boxed{\beta_2}(Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+\frametitle{DAGs}
+
+Ground rules:
+
+>- Causality runs in one direction: forward through time.
+
+>- DAGs represent chains of events. 
+
+>- DAGs operate in counterfactuals: use use them to compare hypothetical worlds, scenarios, interventions.
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$\text{Income}$};
+		\node (2) at (6,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+
+		\draw [color=red,ultra thick,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to (3);
+		
+		\path (1) -- node [text width=1.5cm,midway,above=0.05em,align=center,color=red] {Backdoor path} (2);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$\text{Income}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$\text{Income}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (4) at (1,-3) {$\text{U}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+		\draw [dashed,->] (4) to [bend left=20] (2);
+		\draw [dashed,->] (4) to [bend right=20] (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\includegraphics[page=1,width = 1\textwidth]{figures/epistemology.pdf}
+
+---
+
+\frametitle{Review}
+
+1. Choose a functional form for the model.
+
+2. Choose an estimator (i.e., objective function) that relates the model to real observed data (e.g., OLS).
+
+3. Fit the model (e.g., estimate parameters) by optimizing the objective function.
+
+---
+
+\frametitle{Review}
+
+1. Choose a functional form for the model.
+
+$$y_i=\beta_0+\boxed{\beta_1}{x_i}+\epsilon_i$$
+
+2. Choose an estimator (i.e., objective function) that relates the model to real observed data (e.g., OLS).
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+3. Fit the model (e.g., estimate parameters) by optimizing the objective function.
+
+---
+
+\frametitle{Review}
+
+1. Choose a functional form for the model.
+
+$$y_i=\beta_0+\boxed{\beta_1}{x_i}+\epsilon_i$$
+
+2. \textbf{We already know the best estimator for the linear model: OLS.}
+
+3. \textbf{We already have pre-built R functions to fit the estimator to data.}
+
+---
+
+\frametitle{Review}
+
+1. \textbf{We don't know the functional form for the model; we must justify our target comparison, or estimand, using theory.}
+
+$$y_i=\beta_0+\boxed{\beta_1}{x_i}+\epsilon_i$$
+
+2. We already know the best estimator for the linear model: OLS.
+
+3. We already have pre-built R functions to fit the estimator to data.
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,3) {$\text{Income}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (4) at (1,-3) {$\text{U}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+		\draw [dashed,->] (4) to [bend left=20] (2);
+		\draw [dashed,->] (4) to [bend right=20] (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{DAGs}
+
+$$\text{Mortality}_i=\beta_0+\boxed{\beta_1}\text{Wine}_i+\beta_2\text{Income}+\epsilon_i$$
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,3) {$\text{Income}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (4) at (1,-3) {$\text{U}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+		\draw [dashed,->] (4) to [bend left=20] (2);
+		\draw [dashed,->] (4) to [bend right=20] (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{Mediation}
+
+>- \textbf{Confounder:} Causes both $X$ and $Y$; potential to bias the estimation of X-Y.
+>- \textbf{Mediator:}
+>- \textbf{Moderator:} 
+
+---
+
+\frametitle{DAGs}
+
+How do I make a DAG?
+
+>- \textbf{Simplify:} Only include nodes and arrows believed to represent important effects.
+>- \textbf{Consolidate:} Search for nodes that are doing the same thing in your DAG. Consolidate into one node. 
+>- \textbf{Mediators:} Are there certain variables that only exist as mediators? You can get rid of these unless you are specifically interested in their mediating effect. 
+>- \textbf{Irrelevance:} Remove variables that are not on the causal pathway between your key treatment and outcome. 
+
+---
+
+\frametitle{DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,3) {$\text{Inc, Edu, Age}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (4) at (1,-2) {$\text{U}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+		\draw [dashed,->] (4) to [bend left=20] (2);
+		\draw [dashed,->] (4) to [bend right=20] (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{DAGs}
+
+$$\text{Mortality}_i=\beta_0+\boxed{\beta_1}\text{Wine}_i+\beta_2\mathbf{X}+\epsilon_i$$
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,3) {$\mathbf{X}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (4) at (1,-2) {$\text{U}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+		\draw [dashed,->] (4) to [bend left=20] (2);
+		\draw [dashed,->] (4) to [bend right=20] (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{Confounding}
+
+>- Do not listen to anyone who says "Well, you _have_ to control for X." 
+
+>- What they are really saying: "The comparison in which you are not controlling for X is not useful; I'm assuming you want to make the comparison where you control for X." This can be an argument on theoretical grounds about the utility of various research questions.
+
+>- There may be very good reasons to control for X! But it _completely_ depends on your research question; more specifically, exactly what \textbf{comparison} you say you're trying to make. 
+
+---
+
+\frametitle{Conceptual models}
+
+What is the difference between a DAG and a conceptual model? 
+
+---
+
+\frametitle{Schwartz et al. 2024}
+
+\includegraphics[width = 0.7\textwidth]{images/eviction_model.png}
+
+---
+
+\frametitle{DAGs}
+
+Key steps for building a quantitative research question:
+
+>- \textbf{(1)} Draw a conceptual model to guide your research question.
+
+>- \textbf{(2)} Read the literature. What do we know?
+
+>- \textbf{(3)} Refine conceptual model into a DAG (this may include drawing the "causal field"). 
+
+>- \textbf{(4)} Think systematically and explicitly about the potential effect of bias. 
+
+---
+
+\frametitle{Eviction example}
+
+On the board.
+
+---
+
+\frametitle{DAGs}
+
+Let's workshop a DAG on the board for someone's research project. 
