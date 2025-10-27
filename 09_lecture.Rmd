@@ -1,0 +1,379 @@
+---
+title: "SOC-5811 Week 9: Potential outcomes"
+author: "Nick Graetz"
+date: "10/27/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+library(data.table)
+library(knitr)
+library(kableExtra)
+library(arrow)
+library(haven)
+library(ggplot2)
+library(marginaleffects)
+library(tidyverse)
+knitr::opts_chunk$set(echo = FALSE)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Review}
+
+\textbf{Research Question:} What is the difference in grandchild wealth by grandparent race, controlling for grandparent wealth?
+
+* $Y$ = grandchild wealth (continuous)
+* $X$ = grandparent wealth (continuous)
+* $Z$ = grandparent race (categorical: Black, White)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\beta_1(X)+\boxed{\beta_2}(Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+\frametitle{Review}
+
+\textbf{Research Question:} What is the difference in the average association between grandparent wealth and grandchild wealth by race?
+
+* $Y$ = grandchild wealth (continuous)
+* $X$ = grandparent wealth (continuous)
+* $Z$ = grandparent race (categorical: Black, White)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\beta_1(X)+\boxed{\beta_2}(Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+\frametitle{Review}
+
+\textbf{Research Question:} What is the average association between grandparent wealth and grandchild wealth?
+
+* $Y$ = grandchild wealth (continuous)
+* $X$ = grandparent wealth (continuous)
+* $Z$ = grandparent race (categorical: Black, White)
+
+\begin{align}
+  &\textbf{A: } y_i=\beta_0+\boxed{\beta_1}(X) \\
+  &\textbf{B: } y_i=\beta_0+\boxed{\beta_1}(X)+\beta_2(Z) \\
+  &\textbf{C: } y_i=\beta_0+\beta_1(X)+\boxed{\beta_2}(Z) \\
+  &\textbf{D: } y_i=\beta_0+\beta_1(X)+\beta_2(Z)+\boxed{\beta_3}(X \times Z) 
+\end{align}
+
+---
+
+\frametitle{Review DAGs}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$\text{Income}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (4) at (1,-3) {$\text{U}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+		\draw [dashed,->] (4) to [bend left=20] (2);
+		\draw [dashed,->] (4) to [bend right=20] (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{Review DAGs}
+
+Key steps for building a quantitative research question:
+
+>- \textbf{(1)} Draw a conceptual model to guide your research question.
+
+>- \textbf{(2)} Read the literature. What do we know?
+
+>- \textbf{(3)} Refine conceptual model into a DAG (this may include drawing the "causal field"). 
+
+>- \textbf{(4)} Think systematically and explicitly about the potential effect of bias. 
+
+---
+
+\frametitle{DAGs}
+
+Let's workshop a DAG on the board for someone's research project. 
+
+---
+
+\frametitle{Causal Inference}
+
+>- Causal inference involves counterfactuals.
+
+>- What is a _counterfactual_?
+
+---
+
+\frametitle{Potential outcomes}
+
+>- Key assumption: “each individual in the population of interest has a potential outcome under each treatment state, even though each individual can be observed in only one treatment state at any given point in time.”
+
+>- “The fundamental problem of causal inference”
+
+---
+
+\frametitle{Potential outcomes}
+
+We observe some value of $y$ for every unit $i$:
+
+$$y_i$$
+
+---
+
+\frametitle{Potential outcomes}
+
+“The fundamental problem of causal inference”
+
+$$\delta_i=y_{i}^1-y_{i}^0$$
+
+---
+
+\frametitle{Potential outcomes}
+
+“The fundamental problem of causal inference”
+
+$$\delta_i=y_{i}^1-y_{i}^0$$
+
+* Experiments do not overcome this problem!
+* The true experiment would be the same individual at the same time. 
+
+---
+
+\frametitle{Potential outcomes}
+
+```{r, include=T}
+d <- data.table(Group=c('Treatment (X=1)','Control (X=0)'),
+                Y1=c('Observable','Counterfactual'),
+                Y0=c('Counterfactual','Observable'))
+kable(d)
+```
+
+---
+
+\frametitle{Potential outcomes}
+
+```{r, include=T}
+d <- data.table(Group=c('Treatment (X=1)','Control (X=0)'),
+                Y1=c('$y_{i}^1 \\mid X=1$','$y_{i}^1 \\mid X=0$'),
+                Y0=c('$y_{i}^0 \\mid X=1$','$y_{i}^0 \\mid X=0$'))
+kable(d, escape = F)
+```
+
+---
+
+\frametitle{Potential outcomes}
+
+```{r, include=T}
+d <- data.table(Group=c('Treatment (X=1)','Control (X=0)'),
+                Y1=c('Observable','Counterfactual'),
+                Y0=c('Counterfactual','Observable'))
+kable(d)
+```
+
+* Counterfactuals exist in theory but are \textbf{unobservable.}
+* \textbf{Causal inference is a prediction problem!}
+
+---
+
+\frametitle{Average treatment effects}
+
+$$y_i=\beta_1{X}+\epsilon_i$$
+
+---
+
+\frametitle{Average treatment effects}
+
+$$y_i=\beta_1{X}+\epsilon_i$$
+
+$$\beta_1=\sum_n{(y_i|X=1)-(y_i|X=0)}$$
+
+---
+
+\frametitle{Average treatment effects}
+
+$$y_i=\beta_1{X}+\epsilon_i$$
+
+$$\beta_1=\sum_n{(y_i|X=1)-(y_i|X=0)}$$
+
+* We can't predict individual treatment effects, but we can predict the \textbf{average treatment effect (ATE).}
+* The regression model is one way of generating the \textbf{predictions} needed to estimate the ATE. 
+
+---
+
+\frametitle{Causal inference: prediction problem}
+
+$$\text{prestige}_i=\beta_1\text{college}_i+\beta_2\text{age}_i+\beta_3\text{race}_i+\beta_4\text{sex}_i+\beta_5\text{sibs}_i+\beta_6\text{fprestige}_i$$
+
+\tiny
+```{r, echo=F}
+gss <- read_parquet('https://github.com/ngraetz/soc5811/raw/refs/heads/main/data/FinalProjectData/GSS%202021/GSS2021.parquet')
+gss <- as.data.table(gss)
+gss[, college := ifelse(degree %in% 3:4, 1, 0)]
+gss <- gss %>%
+  mutate(across(c(age,race,sex), as.numeric))
+for(v in c('prestg10','college','age','race','sex','sibs','papres10')) gss <- gss[!is.na(get(v)), ]
+mod <- lm(prestg10~college+age+as.factor(race)+sex+sibs+papres10,data=gss)
+summary(mod)
+```
+
+---
+
+\frametitle{Causal inference: prediction problem}
+
+\small
+```{r, echo=F}
+gss[, y0 := predictions(mod, variables = list(college = 0))$estimate]
+gss[, y1 := predictions(mod, variables = list(college = 1))$estimate]
+head(gss[,c('college','prestg10','y0','y1')])
+```
+
+---
+
+\frametitle{Causal inference: prediction problem}
+
+\small
+```{r, echo=T}
+mean(gss$y1)
+mean(gss$y0)
+```
+---
+
+\frametitle{Causal inference: prediction problem}
+
+\small
+```{r, echo=T}
+mean(gss$y1) - mean(gss$y0)
+```
+
+---
+
+\frametitle{Causal inference: prediction problem}
+
+\small
+```{r, echo=T}
+mean(gss$y1) - mean(gss$y0)
+```
+
+\tiny
+```{r, echo=T}
+summary(mod)
+```
+
+---
+
+\frametitle{Average treatment effects}
+
+$$y_i=\beta_1{X}+\epsilon_i$$
+
+$$\beta_1=\sum_n{(y_i|X=1)-(y_i|X=0)}$$
+
+>- We can't predict individual treatment effects, but we can predict the \textbf{average treatment effect (ATE).} The regression model is one way of generating the \textbf{predictions} needed to estimate the ATE. 
+>- But when can these \textbf{predictions} be interpreted as \textbf{potential outcomes?}
+
+---
+
+\frametitle{Average treatment effects}
+
+\textbf{Independence assumption}
+
+$$(Y^1,Y^0,\delta) \independent  X$$
+
+* Also referred to as exchangeability, no confounding, etc.
+
+---
+
+\frametitle{Average treatment effects}
+
+```{r, include=T}
+data.table(Group=c('Treatment (X=1)','Control (X=0)'),
+           Y1=c('Observable','Counterfactual'),
+           Y0=c('Counterfactual','Observable')) %>% 
+kable() 
+```
+
+$$\text{ATE}=E[y_{i}^1]-E[y_{i}^0]$$
+
+---
+
+\frametitle{Average treatment effects}
+
+```{r, include=T}
+data.table(Group=c('Treatment (X=1)','Control (X=0)'),
+           Y1=c('Observable','Counterfactual'),
+           Y0=c('Counterfactual','Observable')) %>% 
+kable() %>% 
+row_spec(1, bold = TRUE, background = "lightgray") # Bolds rows 2 and 4, and adds a light gray background)
+```
+
+$$\text{ATE}=E[y_{i}^1]-E[y_{i}^0]$$
+
+$$\textbf{ATT}=E[y_{i}^1|X=1]-E[y_{i}^0|X=1]$$
+
+---
+
+\frametitle{Average treatment effects}
+
+```{r, include=T}
+data.table(Group=c('Treatment (X=1)','Control (X=0)'),
+           Y1=c('Observable','Counterfactual'),
+           Y0=c('Counterfactual','Observable')) %>% 
+kable() %>% 
+row_spec(2, bold = TRUE, background = "lightgray") # Bolds rows 2 and 4, and adds a light gray background)
+```
+
+$$\text{ATE}=E[y_{i}^1]-E[y_{i}^0]$$
+
+$$\text{ATT}=E[y_{i}^1|X=1]-E[y_{i}^0|X=1]$$
+
+$$\textbf{ATC}=E[y_{i}^1|X=0]-E[y_{i}^0|X=0]$$
+
+---
+
+\frametitle{Average treatment effects}
+
+```{r, include=T}
+data.table(Group=c('Treatment (X=1)','Control (X=0)'),
+           Y1=c('Observable','Counterfactual'),
+           Y0=c('Counterfactual','Observable')) %>% 
+kable() 
+```
+
+$$\text{ATE}=E[y_{i}^1]-E[y_{i}^0]$$
+
+$$\text{ATT}=E[y_{i}^1|X=1]-E[y_{i}^0|X=1]$$
+
+$$\text{ATC}=E[y_{i}^1|X=0]-E[y_{i}^0|X=0]$$
+
+When will all three of these be identical?
+
+---
+
+\frametitle{Education and earnings}
+
