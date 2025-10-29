@@ -375,5 +375,379 @@ When will all three of these be identical?
 
 ---
 
-\frametitle{Education and earnings}
+\frametitle{Review}
 
+>- What are potential outcomes?
+
+>- What is the fundamental problem of causal inference?
+
+>- What is the independence or exchangeability assumption?
+
+---
+
+\frametitle{Review}
+
+>- We can't predict individual treatment effects, but we can predict the \textbf{average treatment effect (ATE).}
+
+>- Causal inference is a prediction problem: we must predict potential outcomes using average observed outcomes from exchangeable units. 
+
+>- The regression model is one way of generating the \textbf{predictions} needed to estimate the ATE. 
+
+---
+
+\frametitle{Coming weeks}
+
+>- Over the next couple weeks, we will transition to "panel data." 
+
+>- Panel data involves repeated observations for the same unit. How is this possible?
+
+>- Same units observed at different \textbf{times.}
+
+---
+
+\frametitle{What have we learned?}
+
+>- \textbf{What have we learned?}
+>   - Generalization.
+>   - Statistical inference and uncertainty: standard errors, confidence intervals, p-values.
+>   - Models: estimands, estimators, estimation. 
+>   - Interpreting model parameters: multiple variables, interactions, etc.
+>   - Interpreting model parameters as causal effects: DAGs, assumptions, etc.
+
+---
+
+\frametitle{Generalization: Summary}
+
+What are we generalizing?
+
+1. Measurement.
+2. Generalizing from sample to population.
+3. Comparison (e.g., causal inference).
+4. Forecasting.
+
+---
+
+\includegraphics[page=1,width = 1\textwidth]{figures/epistemology.pdf}
+
+---
+
+\frametitle{Inference}
+
+>- \textbf{Statistical inference:} We observe data and we try to learn something from it, which involved uncertainty. Based on our sample, how sure are we that the population parameter is different from 0? 
+
+>- \textbf{Sampling distribution} = ???
+
+---
+
+\frametitle{Inference}
+
+>- \textbf{Statistical inference:} We observe data and we try to learn something from it, which involved uncertainty. Based on our sample, how sure are we that the population parameter is different from 0? 
+
+>- \textbf{Sampling distribution} = the set of possible datasets that could have been observed if the data collection process had been re-done, along with the probabilities of these values.
+
+---
+
+\frametitle{Inference}
+
+>- \textbf{Standard error} = a measure of the spread of sample means around the population mean; the standard deviation of the sampling distribution.  
+
+$$\text{Standard error}=\frac{\text{Sample standard deviation}}{\sqrt{n}}$$
+
+>- \textbf{95\% confidence interval} = ???
+
+>- \textbf{p-value} = ???
+
+>- \textbf{Statistical significance} = ???
+
+---
+
+\frametitle{Inference}
+
+>- \textbf{Standard error} = a measure of the spread of sample means around the population mean; the standard deviation of the sampling distribution.  
+
+$$\text{Standard error}=\frac{\text{Sample standard deviation}}{\sqrt{n}}$$
+
+>- \textbf{95\% confidence interval} = +/- 2 standard errors
+
+>- \textbf{p-value} = the probability that the null model would produce a parameter estimate as extreme as your observed estimate.  
+
+>- \textbf{Statistical significance} = conventionally defined as a p-value less than 0.05, relative to some null hypothesis or prespecified value that would indicate no effect present.
+
+---
+
+\frametitle{Inference}
+
+\begin{center}
+\includegraphics[width = 0.7\textwidth]{images/confidence_intervals.png}
+\end{center}
+
+---
+
+\frametitle{Inference}
+
+>- How do we estimate standard errors?
+>   - Analytic closed-form solution.
+>   - Simulate the sampling distribution using the sample data ("bootstrapping"). 
+
+---
+
+\frametitle{Inference}
+
+$$E[\text{Income}|\text{Edu=college}]-E[\text{Income}|\text{Edu=high school}]$$
+
+>- $H_0$: There is no relationship between Income and Education.
+
+>- $H_1$: There is some relationship between Income and Education.
+
+---
+
+\frametitle{Inference}
+
+$$\text{Income}_i=\beta_0+\boxed{\beta_1}\text{Edu}+\beta_2\text{Age}+\epsilon_i$$
+
+>- $H_0$: There is no relationship between Income and Edu, controlling for Age.
+
+>- $H_1$: There is some relationship between Income and Edu, controlling for Age.
+
+---
+
+\frametitle{Inference}
+
+>- What does a small p-value mean? Does a small p-value mean that the observed association between X and Y is _important_?
+
+---
+
+\frametitle{Inference}
+
+\tiny
+```{r, echo=FALSE}
+coefs <- data.table(model=paste0('Model ',1:5),
+                    estimate=c(0.5,3,0,0,3),
+                    lower=c(0.2,1,-2,-0.2,-0.1),
+                    upper=c(0.8,5,2,0.2,6.1))
+ggplot(data=coefs,
+       aes(y=model,x=estimate,xmin=lower,xmax=upper)) +
+  geom_vline(xintercept = 0, linetype='dashed') + 
+  geom_linerange() + 
+  geom_point(size=3) + 
+  labs(y='',x='Coefficient estimate') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Models}
+
+>- What is a model? A combination of _deterministic_ and _stochastic_ processes.
+
+>- What does it mean to "fit" a regression model? In other words, once we have written down a model, how do we estimate it?
+
+---
+
+\frametitle{Models}
+
+1. \textbf{Estimand:} What is my goal? What is my target comparison I want to infer something about? Example: I want to know if income varies by education, conditional on age.
+
+2. \textbf{Estimator:} How do I relate my population estimand to real sample data in a way that let's me identify its _most likely_ value given that sample data? 
+
+3. \textbf{Estimation:} How do I optimize my estimator (i.e., calculate the most likely value of my estimand)? 
+
+---
+
+\frametitle{Models}
+
+1. \textbf{Estimand:} Choose a functional form for the model and highlight the target parameter ("estimand").
+
+$$y_i=\beta_0+\boxed{\beta_1}{x_i}+\epsilon_i$$
+
+2. \textbf{Estimator:} Choose an estimator that relates the model to real observed data (e.g., OLS) and is unbiased, consistent, and efficient.
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+3. \textbf{Estimation:} Estimate parameters by optimizing the estimator; sometimes this can be done analytically, sometimes it requires brute computational force.
+
+---
+
+\frametitle{Coefficients}
+
+$$\text{Income}_i=\beta_0+\beta_1X_i$$
+
+>- How do we interpret regression coefficients? They are average comparisons of predictions.
+
+>- How do we interpret $\beta_1$ if X is continuous (e.g., age)?
+
+>- How do we interpret $\beta_1$ if X is categorical (e.g., level of education)?
+
+>- When might we want to _rescale_ or _shift_ X? How does that change our interpretation of $\beta_1$?
+
+---
+
+\frametitle{Coefficients}
+
+>- Why would we include multiple variables in our regression model? In other words, why might we want to consider an estimand that takes into account other variables (e.g., the average association of education with income conditional on age)?
+
+>- \textbf{Adjusted comparisons:} Sometimes comparisons at a high level can be misleading about comparisons at a lower level (Simpson's Paradox). Example: USA and Mexico mortality rates.
+>   - Am I doing causal inference? No, I'm just comparing rates conditional on age. 
+
+>- \textbf{Causal inference:} Confounding.
+
+---
+
+\frametitle{Coefficients}
+
+$$\text{Income}_i=\beta_0+\beta_1\text{College}_i+\beta_2\text{Age}_i$$
+
+>- How do I interpret $\beta_1$?
+
+>- Does the estimate of $\beta_1$ change if I rescale or shift age?
+
+---
+
+\frametitle{Coefficients}
+
+\textbf{Categorical} $\times$ \textbf{Continuous}
+
+$$\text{Income}_i=\beta_0+\beta_1\text{College}_i+\beta_2\text{Age}_i+\beta_3\text{(College}_i\times\text{Age)}_i$$
+
+>- How do I interpret $\beta_1$?
+
+>- Does the estimate of $\beta_1$ change if I rescale or shift age?
+
+---
+
+\frametitle{Coefficients}
+
+\textbf{Categorical} $\times$ \textbf{Continuous}
+
+$$\text{Income}_i=\beta_0+\beta_1\text{College}_i+\beta_2\text{Age}_i+\beta_3\text{(College}_i\times\text{Age)}_i$$
+
+>- How do I interpret $\beta_2$?
+
+>- How do I interpret $\beta_3$?
+
+---
+
+\frametitle{Coefficients}
+
+\textbf{Categorical} $\times$ \textbf{Continuous}
+
+$$\text{Income}_i=\beta_0+\beta_1\text{College}_i+\beta_2\text{Age}_i+\beta_3\text{(College}_i\times\text{Age)}_i$$
+
+>- How many possible predictions can we make from this model?
+
+---
+
+\frametitle{Coefficients}
+
+\textbf{Continuous} $\times$ \textbf{Continuous}
+
+$$\text{Income}_i=\beta_0+\beta_1\text{Age}_i+\beta_2\text{Income}_i^\text{parent}+\beta_3\text{(Age}\times\text{Income}_i^\text{parent})$$
+
+>- How many possible predictions can we make from this model?
+
+---
+
+\frametitle{Coefficients}
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+$$\text{Income}_i=\beta_0+\beta_1\text{College}_i+\beta_2\text{Immigrant}_i+\beta_3\text{(College}_i\times\text{Immigrant}_i)$$
+
+>- How many possible predictions can we make from this model?
+
+---
+
+\frametitle{Coefficients}
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+$$\text{Income}_i=\beta_0+\beta_1\text{College}_i+\beta_2\text{Immigrant}_i+\beta_3\text{(College}_i\times\text{Immigrant})_i$$
+
+* Non-college, non-immigrant = $\beta_0$
+* College, non-immigrant = $\beta_1$
+* Non-college, immigrant = $\beta_2$
+* College, immigrant = $\beta_1$ + $\beta_2$ + $\beta_3$
+
+---
+
+\frametitle{Causal inference}
+
+From _Regression and Other Stories_ (6.3): "The safest interpretation of a regression is as a comparison ... Under some conditions, the between-person inferences from a regression analysis can be interpreted as causal effects, but as a starting point we recommend describing regression coefficients in predictive or descriptive, rather than causal, terms. 
+
+To summarize: regression is a mathematical tool for making predictions. Regression coefficients can \textbf{sometimes} be interpreted as effects, but they can \textbf{always} be interpreted as average comparisons." 
+
+---
+
+\frametitle{Causal inference}
+
+>- What is the key assumption to interpret average comparisons as causal effects? 
+
+>- Exchangeability (or the independence assumption). 
+
+---
+
+\frametitle{Causal inference}
+
+When can we make strong claims about this assumption? What are our strategies?
+
+>- Randomization of the exposure.
+
+>- Controlling for confounders.
+
+---
+
+\frametitle{Causal inference}
+
+\begin{figure}[h]
+\centering
+
+	\large{\begin{tikzpicture}[->,>=stealth,node distance=10cm, scale = 0.6]
+
+		\node (1) at (1,6) {$\text{Income}$};
+		\node (2) at (3,1) {$\text{Wine}$};
+		\node (3) at (16,1) {$\text{Mortality}$};
+		\node (4) at (1,-3) {$\text{U}$};
+		\node (5) at (10,1) {$\text{Substance abuse}$};
+
+		\draw [,->] (1) to [bend right=20] (2);
+		\draw [,->] (1) to [bend left=20] (3);
+		\draw [,->] (2) to [bend left=20] (3);
+		\draw [,->] (2) to (5);
+		\draw [,->] (5) to (3);
+		\draw [dashed,->] (4) to [bend left=20] (2);
+		\draw [dashed,->] (4) to [bend right=20] (3);
+
+	\end{tikzpicture}}
+
+\end{figure}
+
+---
+
+\frametitle{Causal inference}
+
+>- We can't predict individual treatment effects, but we can predict the \textbf{average treatment effect (ATE).}
+
+>- Causal inference is a prediction problem: we must predict potential outcomes using average observed outcomes from exchangeable units. 
+
+>- The regression model is one way of generating the \textbf{predictions} needed to estimate the ATE. 
+
+---
+
+\frametitle{Causal inference}
+
+```{r, include=T}
+data.table(Group=c('Treatment (X=1)','Control (X=0)'),
+           Y1=c('Observable','Counterfactual'),
+           Y0=c('Counterfactual','Observable')) %>% 
+kable() 
+```
+
+---
+
+\frametitle{Looking ahead}
+
+>- If you are interested in causal methods, I teach another class every other year (SOC 8890) focused on causal inference. 
+
+>- For the rest of the semester, we will introduce a few other advanced uses of the basic linear regression model.
+
+>- In SOC 8811, you will learn about more complex regression models (e.g., logistic regression). 
