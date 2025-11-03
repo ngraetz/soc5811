@@ -1,0 +1,222 @@
+---
+title: "SOC-5811 Week 10: Panel Data"
+author: "Nick Graetz"
+date: "11/3/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+library(AER)
+library(data.table)
+library(knitr)
+library(kableExtra)
+library(arrow)
+library(haven)
+library(ggplot2)
+library(marginaleffects)
+library(tidyverse)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE,
+ out.width="80%"
+)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Panel data}
+
+>- What is "panel data?" 
+
+>- \textbf{Panel data:} A data set where we observe the same units (e.g., individuals, firms, countries, schools) over more than one time period. 
+
+>- Walk through data examples: when is longitudinal data panel data? Repeated observations of the same variable.
+
+---
+
+\frametitle{Panel data}
+
+Basic linear regression model: 
+
+$$y_i=\beta_0+\beta_1X_i$$
+
+Linear regression model with panel data:
+
+$$y_{i,t}=\beta_0+\beta_1X_{i,t}$$
+
+---
+
+\frametitle{Panel data}
+
+>- Let's walk through an example with data: traffic deaths and beer taxes by state/year. 
+
+---
+
+\frametitle{Panel data}
+
+\tiny
+```{r, echo=F}
+data("Fatalities")
+Fatalities <- as.tibble(Fatalities)
+```
+
+\tiny
+```{r, echo=T}
+dim(Fatalities)
+Fatalities %>% select(state) %>% table()
+Fatalities %>% select(year) %>% table()
+```
+
+---
+
+\frametitle{Panel data}
+
+>- This is called "balanced" panel data. Why? What would be "unbalanced" panel data?
+
+>- What shape is this dataset with respect to time?
+
+---
+
+\frametitle{Panel data}
+
+\tiny
+```{r, echo=T}
+head(Fatalities)
+```
+
+---
+
+\frametitle{Panel data}
+
+$$\text{Rate}_{i,t}=\beta_0+\beta_1\text{Tax}_{i,t}$$
+
+---
+
+\frametitle{Panel data}
+
+All years (pooled model): 
+
+```{r, echo=F}
+Fatalities <- Fatalities %>% 
+  mutate(rate = fatal / pop * 100000)
+ggplot(data=Fatalities,
+       aes(x=beertax,y=rate)) + 
+  geom_point() + 
+  geom_smooth(method='lm') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Panel data}
+
+\tiny
+```{r, echo=T}
+mod <- lm(rate ~ beertax, data=Fatalities)
+summary(mod)
+```
+
+---
+
+\frametitle{Panel data}
+
+We could just think of panel data as several samples and several regression models:
+
+$$\text{Rate}_{i,1988}=\beta_0+\beta_1\text{Tax}_{i,1988}$$
+
+$$\text{Rate}_{i,1982}=\beta_0+\beta_1\text{Tax}_{i,1982}$$
+
+---
+
+\frametitle{Panel data}
+
+$$\text{Rate}_{i,1988}=\beta_0+\beta_1\text{Tax}_{i,1988}$$
+
+$$\text{Rate}_{i,1982}=\beta_0+\beta_1\text{Tax}_{i,1982}$$
+
+$$\text{Rate}_{i,1988} - \text{Rate}_{i,1982}=\beta_0+\beta_1(\text{Tax}_{i,1988}-\text{Tax}_{i,1982})$$
+We have now made this a "within" estimator: we are predicting within-unit changes. 
+
+---
+
+\frametitle{Panel data}
+
+\tiny
+```{r, echo=T}
+Fatalities_wide <- Fatalities %>%
+  filter(year %in% c(1982,1988)) %>%
+  pivot_wider(id_cols = state, 
+              values_from = c(rate,beertax), 
+              names_from = year) %>%
+  mutate(rate_change = rate_1988 - rate_1982,
+         tax_change = beertax_1988 - beertax_1982)
+```
+
+---
+
+\frametitle{Panel data}
+
+\tiny
+```{r, echo=T}
+head(Fatalities_wide)
+```
+
+---
+
+\frametitle{Panel data}
+
+\tiny
+```{r, echo=T}
+mod <- lm(rate_change ~ tax_change, data=Fatalities_wide)
+summary(mod)
+```
+
+---
+
+\frametitle{Panel data}
+
+>- What does this remind you of that we have covered already?
+
+>- Simpson's Paradox! What was the idea of Simpson's Paradox related to omitted variables?
+
+>- There was some variable we were missing. If we looked _within_ penguin species, we found the opposite relationship!
+
+>- \textbf{Intercept shifts.}
+
+---
+
+\frametitle{Causal inference}
+
+>- What is the difference between Simpson's Paradox examples and what we are doing here? 
+
+>- There is no new _observed variable_ that we are adding. 
+
+>- So what have we done? We have accounted for _unobserved variables_.
+
+>- But what specific kind of unobserved variables? Time-invariant
+
+---
+
+\frametitle{Causal inference}
+
+>- Panel data and causal inference
+
+$$\text{Rate}_{i,1988}=\beta_0+\beta_1\text{Tax}_{i,1988}+\beta_2 Z_i$$
+
+$$\text{Rate}_{i,1982}=\beta_0+\beta_1\text{Tax}_{i,1982}+\beta_2 Z_i$$
+
+$$\text{Rate}_{i,1988} - \text{Rate}_{i,1982}=\beta_0+\beta_1(\text{Tax}_{i,1988}-\text{Tax}_{i,1982})$$
+
+---
+
+\frametitle{Causal inference}
+
+>- When might we run into problems?
