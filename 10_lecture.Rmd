@@ -19,6 +19,7 @@ library(haven)
 library(ggplot2)
 library(marginaleffects)
 library(tidyverse)
+library(fixest)
 knitr::opts_chunk$set(
  fig.width = 6,
  fig.height = 4,
@@ -220,3 +221,444 @@ $$\text{Rate}_{i,1988} - \text{Rate}_{i,1982}=\beta_0+\beta_1(\text{Tax}_{i,1988
 \frametitle{Causal inference}
 
 >- When might we run into problems?
+
+---
+
+\frametitle{Review}
+
+>- Pick up here on Wednesday
+
+---
+
+\frametitle{Panel data}
+
+\textbf{Panel data:} A data set where we observe the same units (e.g., individuals, firms, countries, schools) over more than one time period. 
+
+\textbf{Linear regression model with cross-sectional data:} 
+
+$$y_i=\beta_0+\beta_1X_i$$
+
+\textbf{Linear regression model with panel data:}
+
+$$y_{i,t}=\beta_0+\beta_1X_{i,t}$$
+
+---
+
+\frametitle{Cross-sectional data}
+
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{images/penguin2.png}
+\end{center}
+
+---
+
+\frametitle{Cross-sectional data}
+
+\textbf{Cross-sectional} data on penguin bill length and depth. 
+
+\tiny
+```{r, echo=T}
+penguin_df <- 
+  palmerpenguins::penguins %>%
+  na.omit()
+head(penguin_df)
+```
+
+---
+
+\frametitle{Cross-sectional data}
+
+$$\text{Depth}_i=\beta_0+\boxed{\beta_1}\text{Length}_i$$
+
+---
+
+\frametitle{Cross-sectional data}
+
+>- What variation are we using to estimate the coefficient? 
+
+```{r, echo=F}
+penguin_df <- 
+  palmerpenguins::penguins %>%
+  na.omit()
+mod <- lm(bill_depth_mm ~ bill_length_mm + species, data = penguin_df)
+predictions <- tibble(depth_preds = predictions(mod)$estimate)
+penguin_df <- penguin_df %>%
+  bind_cols(., predictions)
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm)) + 
+  geom_point(shape=21,size=3,fill='lightgrey') + 
+  geom_smooth(method='lm',se=F,color='red') + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Cross-sectional data}
+
+>- \textbf{Between-unit variation}.
+
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm)) + 
+  geom_point(shape=21,size=3,fill='lightgrey') + 
+  geom_smooth(method='lm',se=F,color='red') + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Cross-sectional data}
+
+What variation are we using once we control for species?
+
+$$\text{Depth}_i=\beta_0+\boxed{\beta_1}\text{Length}_i+\beta_2\text{Species}_i$$
+
+---
+
+\frametitle{Cross-sectional data}
+
+\small
+```{r, echo=T}
+penguin_df <- penguin_df %>% 
+  group_by(species) %>% 
+  mutate(bill_depth_mm_demeaned = 
+           bill_depth_mm - mean(bill_depth_mm),
+         bill_length_mm_demeaned = 
+           bill_length_mm - mean(bill_length_mm))
+```
+
+---
+
+\frametitle{Cross-sectional data}
+
+\tiny
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm_demeaned, y=bill_depth_mm_demeaned, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  geom_smooth(aes(x=bill_length_mm_demeaned, y=bill_depth_mm_demeaned), method='lm',se=F,size=1, color='red', inherit.aes = F) +
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Cross-sectional data}
+
+>- What variation are we using to estimate this coefficient?
+>- Because we controlled for species, we are now using within-species variation. But with respect to unit, we are still using \textbf{between-unit} variation to estimate the coefficient.
+
+---
+
+\frametitle{Cross-sectional data}
+
+>- Intercept shift by species.
+
+```{r, echo=F}
+ggplot(data=penguin_df,
+       aes(x=bill_length_mm, y=bill_depth_mm, fill=species)) + 
+  geom_point(shape=21,size=3) + 
+  geom_line(aes(y=depth_preds),size=1,color='red') + 
+  scale_fill_viridis_d() + 
+  labs(x="Length", y="Depth", fill='Species') +
+  theme_bw()
+```
+
+---
+
+\frametitle{Panel data}
+
+\textbf{Panel data} on traffic mortality rate and beer taxes. 
+
+\tiny
+```{r, echo=T}
+head(Fatalities)
+```
+
+---
+
+\frametitle{Panel data}
+
+$$\text{Rate}_{i,t}=\beta_0+\boxed{\beta_1}\text{Tax}_{i,t}$$
+
+---
+
+\frametitle{Panel data}
+
+>- What variation are we using to estimate the coefficient? 
+
+```{r, echo=F}
+mod <- lm(rate~beertax+state, data=Fatalities)
+predictions <- tibble(rate_preds = predictions(mod)$estimate)
+Fatalities <- Fatalities %>%
+  bind_cols(., predictions)
+ggplot(data=Fatalities,
+       aes(x=beertax, y=rate)) + 
+  geom_point(shape=21,size=3,fill='lightgrey') + 
+  geom_smooth(method='lm',se=F,color='red') + 
+  labs(x="Beer tax", y="Traffic mortality rate per 100,000") +
+  theme_bw()
+```
+
+---
+
+\frametitle{Panel data}
+
+>- \textbf{Between-unit/time variation}.
+
+```{r, echo=F}
+ggplot(data=Fatalities,
+       aes(x=beertax, y=rate)) + 
+  geom_point(shape=21,size=3,fill='lightgrey') + 
+  geom_smooth(method='lm',se=F,color='red') + 
+  labs(x="Beer tax", y="Traffic mortality rate per 100,000") +
+  theme_bw()
+```
+
+---
+
+\frametitle{Panel data}
+
+What variation are we using once we control for state?
+
+$$\text{Rate}_{i,t}=\beta_0+\boxed{\beta_1}\text{Tax}_{i,t}+\beta_2\text{State}_i$$
+
+---
+
+\frametitle{Panel data}
+
+\small
+```{r, echo=T}
+Fatalities <- Fatalities %>%
+  group_by(state) %>% 
+  mutate(rate_demeaned = rate - mean(rate),
+         tax_demeaned = beertax - mean(beertax))
+mod <- lm(rate_demeaned ~ tax_demeaned, data=Fatalities)
+```
+
+---
+
+\frametitle{Panel data}
+
+```{r, echo=F}
+predictions <- tibble(rate_preds2 = predictions(mod)$estimate)
+Fatalities <- Fatalities %>%
+  bind_cols(., predictions)
+ggplot(data=Fatalities,
+       aes(x=tax_demeaned, y=rate_demeaned)) + 
+  geom_point(shape=21,size=3,fill='lightgrey') + 
+  geom_line(aes(y=rate_preds2),size=1,color='red') + 
+  scale_fill_viridis_d() + 
+  labs(x="Beer tax (DEMEANED)", y="Traffic mortality rate per 100,000 (DEMEANED)") +
+  theme_bw()
+```
+
+---
+
+\frametitle{Panel data}
+
+>- What variation are we using to estimate this coefficient?
+>- Because we controlled for state, we are now using \textbf{within-unit} variation over _time_ to estimate slope. 
+
+---
+
+\frametitle{Panel data}
+
+>- Intercept shift by _unit_ (state).
+
+```{r, echo=F}
+ggplot(data=Fatalities,
+       aes(x=beertax, y=rate, group=state)) + 
+  geom_point(shape=21,size=3,fill='lightgrey') + 
+  geom_line(aes(y=rate_preds),size=1,color='red') + 
+  scale_fill_viridis_d() + 
+  labs(x="Beer tax", y="Traffic mortality rate per 100,000") +
+  theme_bw()
+```
+
+---
+
+\frametitle{Panel data}
+
+\small
+```{r, echo=T}
+mod <- lm(rate ~ beertax + state, data=Fatalities)
+```
+
+---
+
+\frametitle{Panel data}
+
+\tiny
+```{r, echo=F}
+summary(mod)
+```
+
+---
+
+\frametitle{Panel data}
+
+\small
+```{r, echo=T}
+Fatalities <- Fatalities %>%
+  group_by(state) %>% 
+  mutate(rate_demeaned = rate - mean(rate),
+         tax_demeaned = beertax - mean(beertax))
+mod <- lm(rate_demeaned ~ tax_demeaned, data=Fatalities)
+```
+
+---
+
+\frametitle{Panel data}
+
+\tiny
+```{r, echo=F}
+summary(mod)
+```
+
+---
+
+\frametitle{Intercept shifts}
+
+\textbf{Penguin-level} analysis of bill length and depth ($\beta_1$):
+
+$$\text{depth}_i=\beta_0+\beta_1\text{length}_i+\beta_2\text{species}_i$$
+
+\textbf{State-level} analysis of traffic deaths and taxes ($\beta_1$): 
+
+$$\text{rate}_{i,t}=\beta_0+\beta_1\text{tax}_{i,t}+\beta_2\text{state}_i$$
+
+>- With panel data, we're basically doing the same sort of model as before - but now we are controlling for the _unit_ of analysis itself. 
+>- \textbf{Next week:} implications for _estimation_ (i.e., many units) and _uncertainty_ (i.e., correlated errors). 
+
+---
+
+\frametitle{Causal inference}
+
+>- What might panel data and within-unit variation help us do from a _causal_ perspective?
+
+>- Let's think about trying to estimate a causal effect using \textbf{between-unit} variation, as we discussed last week.
+
+---
+
+\frametitle{Average treatment effects}
+
+$$y_i=\beta_1{X}+\epsilon_i$$
+
+$$\beta_1=\sum_n{(y_i|X=1)-(y_i|X=0)}$$
+
+>- But when can these \textbf{predictions} be interpreted as \textbf{potential outcomes?}
+
+>- We can't predict individual treatment effects, but we can predict the \textbf{average treatment effect (ATE).} The regression model is one way of generating the \textbf{predictions} needed to estimate the ATE. 
+
+---
+
+\frametitle{Average treatment effects}
+
+\textbf{Independence assumption}
+
+$$(Y^1,Y^0,\delta) \independent  X$$
+
+>- Also referred to as assuming exchangeability, no unobserved confounding, etc.
+
+>- What do we assume is exchangeable?
+
+---
+
+\frametitle{Causal inference}
+
+\begin{center}
+\includegraphics[width = 1\textwidth]{images/matching.png}
+\end{center}
+
+---
+
+\frametitle{Causal inference}
+
+>- Implication: there is always unobserved confounding, which might be really consequential when estimating effects using \textbf{between-unit} variation from observational data.
+
+\begin{center}
+\includegraphics[width = 1\textwidth]{images/matching.png}
+\end{center}
+
+---
+
+\frametitle{Causal inference}
+
+>- But what if we had longitudinal panel data? What if we can estimate effects using \textbf{within-unit} variation? 
+
+\begin{center}
+\includegraphics[width = 1\textwidth]{images/matching.png}
+\end{center}
+
+---
+
+\frametitle{Causal inference}
+
+>- Panel data and causal inference
+
+$$\text{Rate}_{i,1988}=\beta_0+\beta_1\text{Tax}_{i,1988}+\beta_2 Z_i$$
+
+$$\text{Rate}_{i,1982}=\beta_0+\beta_1\text{Tax}_{i,1982}+\beta_2 Z_i$$
+
+$$\text{Rate}_{i,1988} - \text{Rate}_{i,1982}=\beta_0+\beta_1(\text{Tax}_{i,1988}-\text{Tax}_{i,1982})$$
+
+---
+
+\frametitle{Causal inference}
+
+>- Panel data and causal inference: remember the relationship to demeaning! We are removing the \textbf{unit-specific means}; in other words, all \textbf{time-invariant} characteristics of units. 
+
+$$\text{Rate}_{i,t} - \overline{\text{Rate}_i}=\beta_0+\beta_1(\text{Tax}_{i,t}-\overline{\text{Tax}_i})$$
+
+>- Why is this magical? Why is this different from the penguin example where we had to _observe_ and control for species? 
+
+>- Because we are removing lots of characteristics that are \textbf{unobserved}!
+
+---
+
+\frametitle{Causal inference}
+
+\begin{center}
+\includegraphics[width = 1\textwidth]{images/matching.png}
+\end{center}
+
+---
+
+\frametitle{Causal inference}
+
+\textbf{Caveats:}
+
+>- \textbf{(1)} Unit-level fixed effects cannot address \textbf{time-variant} unobserved confounding. 
+>   - Even though we are only using within-unit variation, it's still possible that there was _something else_ changing over time within units that caused the outcome. 
+
+>- \textbf{(2)} Unit-level fixed effects can lead to substantial bias if there is strong reverse causality. 
+>   - For example, if $Y \longrightarrow X$, then unit-level fixed effects will over-control the mediating pathway by which part of the total effect of $Y \longrightarrow X$ over the period operates through $X_{i,1} \longrightarrow Y_{i,2} \longrightarrow X_{i,3} \longrightarrow Y_{i,4}$
+
+---
+
+\frametitle{Causal inference}
+
+\textbf{Caveats:}
+
+>- \textbf{(3)} Including fixed effects isn't just a "better" way to estimate the same estimand; it changes the estimand. 
+>   - Examining how a target variable predicts \textbf{within-unit} variation in an outcome, while very useful for isolating causal effects, is not the same thing as examining how a target variable predicts \textbf{between-unit} variation, which is often more relevant for descriptive questions. 
+>   - What predicts differences in the average maternal mortality rate across hospitals? Even if I have panel data on hospitals over time, I may not want to include a hospital-level fixed effect. I am more interested in comparing hospitals than I am in comparing changes over time within hospitals. 
+
+---
+
+\frametitle{Causal inference}
+
+\textbf{Caveats:}
+
+* \textbf{(1)} Unit-level fixed effects cannot address \textbf{time-variant} unobserved confounding. 
+
+* \textbf{(2)} Unit-level fixed effects can lead to substantial bias if there is strong reverse causality. 
+
+* \textbf{(3)} Including fixed effects isn't just a "better" way to estimate the same comparison; it _changes_ the comparison.
+
+If you are interested in further developing your causal inference skills, I teach a course called \textbf{SOC8890: Applied Causal Inference.}
+
