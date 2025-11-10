@@ -1,0 +1,238 @@
+---
+title: "SOC-5811 Week 11: Panel Data"
+author: "Nick Graetz"
+date: "11/10/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+library(AER)
+library(data.table)
+library(knitr)
+library(kableExtra)
+library(arrow)
+library(haven)
+library(ggplot2)
+library(marginaleffects)
+library(tidyverse)
+library(fixest)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE,
+ out.width="80%"
+)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Review: Interactions}
+
+$$\text{PolViews}_i=\beta_0+\beta_1\text{Religion}_i+\beta_2\text{Age}_i$$
+
+---
+
+\frametitle{Review: Interactions}
+
+$$\text{PolViews}_i=\beta_0+\beta_1\text{Religion}_i+\beta_2\text{Age}_i+\beta_3(\text{Religion}_i\times\text{Age}_i)$$
+
+---
+
+\frametitle{Review: Interactions}
+
+$$\text{PolViews}_i=\beta_0+\boxed{\beta_1}\text{Religion}_i+\beta_2\text{Age}_i+\beta_3(\text{Religion}_i\times\text{Age}_i)$$
+
+---
+
+\frametitle{Review}
+
+>- What do "fixed effects" do in linear regression models fit to panel data?
+
+$$y_{i,t}=\beta_0+\beta_1X_{i,t}+\alpha_i$$
+
+>- Basically the same thing as controlling for a categorical variable, but the "category" is units.
+>   - Intercept shift by unit.
+>   - Isolates our target comparison to be based on average _within-unit_ variation (i.e., variation over time). 
+>   - From a causal perspective, eliminates all \textbf{time-invariant} confounders.
+
+---
+
+\frametitle{Review}
+
+* \textbf{(1)} Unit-level fixed effects cannot address \textbf{time-variant} unobserved confounding. 
+
+* \textbf{(2)} Unit-level fixed effects can lead to substantial bias if there is strong reverse causality. 
+
+* \textbf{(3)} Including fixed effects isn't just a "better" way to estimate the same comparison; it _changes_ the comparison.
+
+---
+
+\frametitle{Review}
+
+>- When do I want to estimate coefficients using \textbf{between-unit} differences vs. \textbf{within-unit} differences? 
+
+>- If you care about estimating \textbf{causal effects} (or something you want to generally interpret that way), you probably want to use within-unit differences.
+
+>- If you care about estimating \textbf{descriptive disparities}, you probably want to use between-unit differences. 
+
+---
+
+\frametitle{Between vs. within}
+
+$$i=\text{hospital}$$
+$$t=\text{year}$$
+
+$$\text{Physicians}_{i,t}=\beta_0+\beta_1\text{SafetyNet}_{i,t}+\beta_2Z$$
+
+$$\text{Physicians}_{i,t}=\beta_0+\beta_1\text{SafetyNet}_{i,t}+\beta_2Z+\alpha_i$$
+
+---
+
+\frametitle{Between vs. within}
+
+$$\text{Physicians}_{i,t}=\beta_0+\boxed{\beta_1}\text{SafetyNet}_{i,t}+\beta_2Z$$
+
+$$\text{Physicians}_{i,t}=\beta_0+\boxed{\beta_1}\text{SafetyNet}_{i,t}+\beta_2Z+\alpha_i$$
+
+---
+
+\frametitle{Between vs. within}
+
+>- \textbf{Research question:} Do safety net hospitals have different average physicians per patient, controlling for $Z$? 
+>- $\beta_1$: Across all hospitals, safety net hospitals have $\beta_1$ more/fewer physicians per capita.
+>- Descriptive comparison with implications for stratification/inequality. 
+
+$$\text{Physicians}_{i,t}=\beta_0+\boxed{\beta_1}\text{SafetyNet}_{i,t}+\beta_2Z$$
+
+---
+
+\frametitle{Between vs. within}
+
+>- \textbf{Research question:} As the patient population changes within hospitals, does average physicians per patient change? 
+>- Causal comparison with implications for the effect of patient population on work force within hospitals. When hospitals become safety net hospitals, do they see reductions in work force? 
+
+$$\text{Physicians}_{i,t}=\beta_0+\boxed{\beta_1}\text{Pop}_{i,t}+\beta_2Z+\alpha_i$$
+
+---
+
+\frametitle{Between vs. within}
+
+* \textbf{Research question:} Do safety net hospitals have different average physicians per patient, controlling for $Z$? 
+
+* \textbf{Research question:} As the patient population changes within hospitals, does average physicians per patient change?  
+
+* \textbf{Both answer interesting but different research questions.}
+
+---
+
+\frametitle{Estimation}
+
+How to fit fixed effects models: 
+
+>- OLS estimator: Add unit as a categorical variable in lm().
+
+>- OLS estimator: Manually demean and then lm() with demeaned data.
+
+>- Fixed effects estimators (modified OLS): \textbf{feols().}
+
+\tiny
+```{r, echo=F}
+data("Fatalities")
+Fatalities <- as.tibble(Fatalities)
+Fatalities <- Fatalities %>% 
+  mutate(rate = fatal / pop * 100000)
+Fatalities <- Fatalities %>%
+  group_by(state) %>% 
+  mutate(rate_demeaned = rate - mean(rate),
+         tax_demeaned = beertax - mean(beertax))
+```
+
+---
+
+\frametitle{Estimation}
+
+\tiny
+```{r, echo=T}
+summary(lm(rate ~ beertax + state, data=Fatalities))
+```
+
+---
+
+\frametitle{Estimation}
+
+\tiny
+```{r, echo=T}
+summary(lm(rate_demeaned ~ tax_demeaned, data=Fatalities))
+```
+
+---
+
+\small
+```{r, echo=T}
+summary(feols(rate ~ beertax | state, data=Fatalities))
+```
+
+---
+
+\frametitle{Estimation}
+
+How to fit fixed effects models: 
+
+>- OLS estimator: Add unit as a categorical variable in lm().
+>   - Very slow/clunky if you have thousands of units. 
+
+>- OLS estimator: Manually demean and then lm() with demeaned data.
+>   - Very complex to do correctly by hand if you have many variables in your model. 
+
+>- Fixed effects estimators (modified OLS): \textbf{feols().}
+>   - Very fast and efficient; the tradeoff is that you don't estimate standard errors on your fixed effects themselves, but typically this does not matter for your target comparison. 
+
+---
+
+\frametitle{Uncertainty}
+
+>- It is tricky to get the standard errors correct with panel data. Why?
+
+>- Remember that in the conventional regression model, we assume errors are \textbf{independent.} In sampling terms, we assume every sample from the population model is independent of any other sample.
+
+>- Think about flipping a coin 100 times. When we estimate the standard error of the random variable $X$ = number of heads in 100 flips, we assume each flip is unrelated to (or independent from) the other flips.
+
+>- Solution: \textbf{clustered standard errors.}
+
+---
+
+\frametitle{Uncertainty}
+
+\small
+\textbf{$\beta_1$ from our basic OLS model with unit as a categorical variable:}
+
+```{r, echo=F}
+mod1 <- summary(lm(rate ~ beertax + state, data=Fatalities))
+mod1[['coefficients']][2,]
+```
+\textbf{$\beta_1$ from our fixed effects model:}
+
+```{r, echo=F}
+mod2 <- summary(feols(rate ~ beertax | state, data=Fatalities))
+summary(mod2)
+```
+
+---
+
+\frametitle{Review}
+
+Pick up here on Wednesday.
+
+---
+
+\frametitle{Two-way fixed effects}
+
+>- Two-way fixed effects and brief introduction to difference-in-differences.
+
