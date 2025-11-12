@@ -118,7 +118,7 @@ $$\text{Physicians}_{i,t}=\beta_0+\boxed{\beta_1}\text{SafetyNet}_{i,t}+\beta_2Z
 >- \textbf{Research question:} As the patient population changes within hospitals, does average physicians per patient change? 
 >- Causal comparison with implications for the effect of patient population on work force within hospitals. When hospitals become safety net hospitals, do they see reductions in work force? 
 
-$$\text{Physicians}_{i,t}=\beta_0+\boxed{\beta_1}\text{Pop}_{i,t}+\beta_2Z+\alpha_i$$
+$$\text{Physicians}_{i,t}=\beta_0+\boxed{\beta_1}\text{SafetyNet}_{i,t}+\beta_2Z+\alpha_i$$
 
 ---
 
@@ -232,7 +232,348 @@ Pick up here on Wednesday.
 
 ---
 
+\frametitle{Interactions Review}
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+$$\text{MPG}_i=\beta_0+\beta_1\text{E}_i+\beta_2\text{T}_i+\beta_3(\text{E}_i\times\text{T}_i)$$
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+$$\text{MPG}_i=\beta_0+\beta_1\text{E}_i^{\text{v-shaped}}+\beta_2\text{T}_i^{\text{manual}}+\beta_3(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+$$\text{MPG}_i=\beta_0+\beta_1\text{E}_i^{\text{v-shaped}}+\beta_2\text{T}_i^{\text{manual}}+\beta_3(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+
+\tiny
+```{r, echo=F} 
+data(mtcars)
+mtcars <- mtcars %>%
+  mutate(engine_type=recode(vs,`0`='v-shaped',`1`='straight'),
+         transmission=recode(am,`0`='automatic',`1`='manual'))
+mod <- lm(mpg~engine_type*transmission, data=mtcars)
+summary(mod)
+```
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(20.7)+(-5.7)\text{E}_i^{\text{v-shaped}}+(7.6)\text{T}_i^{\text{manual}}+(-2.9)(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+
+\tiny
+```{r, echo=F} 
+data(mtcars)
+mtcars <- mtcars %>%
+  mutate(engine_type=recode(vs,`0`='v-shaped',`1`='straight'),
+         transmission=recode(am,`0`='automatic',`1`='manual'))
+mod <- lm(mpg~engine_type*transmission, data=mtcars)
+summary(mod)
+```
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(20.7)+(-5.7)\text{E}_i^{\text{v-shaped}}+(7.6)\text{T}_i^{\text{manual}}+(-2.9)(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+
+```{r, echo=F} 
+preds <- predictions(mod, 
+                     condition = c('engine_type','transmission'))
+preds <- as.data.table(preds)
+preds <- unique(preds[,c('engine_type','transmission','estimate')])
+ggplot(data=preds,
+       aes(x=engine_type,y=estimate,fill=transmission)) + 
+  geom_point(size=5,shape=21) + 
+  labs(y='MPG',x='Engine Type',fill='Transmission Type') + 
+  theme_bw()
+```
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(20.7)+(-5.7)\text{E}_i^{\text{v-shaped}}+(7.6)\text{T}_i^{\text{manual}}+(-2.9)(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+```{r, echo=F} 
+ggplot(data=preds,
+       aes(x=engine_type,y=estimate,fill=transmission)) + 
+  geom_point(size=5,shape=21) + 
+  geom_linerange(x='straight',ymin=15.05000,ymax=20.74286,size=1) + 
+  labs(y='MPG',x='Engine Type',fill='Transmission Type') + 
+  theme_bw()
+```
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(20.7)+(-5.7)\text{E}_i^{\text{v-shaped}}+(7.6)\text{T}_i^{\text{manual}}+(-2.9)(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+```{r, echo=F} 
+ggplot(data=preds,
+       aes(x=engine_type,y=estimate,fill=transmission)) + 
+  geom_point(size=5,shape=21) + 
+  geom_linerange(x='straight',ymin=20.74286,ymax=28.37143,size=1) + 
+  labs(y='MPG',x='Engine Type',fill='Transmission Type') + 
+  theme_bw()
+```
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(20.7)+(-5.7)\text{E}_i^{\text{v-shaped}}+(7.6)\text{T}_i^{\text{manual}}+(-2.9)(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+```{r, echo=F} 
+ggplot(data=preds,
+       aes(x=engine_type,y=estimate,fill=transmission)) + 
+  geom_point(size=5,shape=21) + 
+  geom_linerange(x='straight',ymin=20.74286,ymax=28.37143,size=1) + 
+  geom_linerange(x='v-shaped',ymin=15.05000,ymax=19.75000,size=1) + 
+  labs(y='MPG',x='Engine Type',fill='Transmission Type') + 
+  theme_bw()
+```
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(20.7)+(-5.7)\text{E}_i^{\text{v-shaped}}+(7.6)\text{T}_i^{\text{manual}}+(-2.9)(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+```{r, echo=F} 
+ggplot(data=preds,
+       aes(x=engine_type,y=estimate,fill=transmission)) + 
+  geom_point(size=5,shape=21) + 
+  geom_linerange(x='straight',ymin=15.05000,ymax=20.74286,size=1) + 
+  geom_linerange(x='v-shaped',ymin=19.75000,ymax=28.37143,size=1) + 
+  labs(y='MPG',x='Engine Type',fill='Transmission Type') + 
+  theme_bw()
+```
+
+---
+
+\textbf{Categorical} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(20.7)+(-5.7)\text{E}_i^{\text{v-shaped}}+(7.6)\text{T}_i^{\text{manual}}+(-2.9)(\text{E}_i^{\text{v-shaped}}\times\text{T}_i^{\text{manual}})$$
+
+* $\beta_1$: Across all cars at the reference level for Transmission (Transmission=automatic), v-shaped Engines are associated with -5.7 lower MPG. 
+
+* $\beta_2$: Across all cars at the reference level for Engine (Engine=straight), manual Transmissions are associated with 7.6 higher MPG. 
+
+* $\beta_3$: The association between v-shaped Engines and MPG for Transmission=automatic (-5.7) is -2.9 lower for Transmission=manual. The association between manual Transmissions and MPG for Engine=straight (7.6) is -2.9 lower for Engine=v-shaped. 
+
+---
+
+\frametitle{Interactions Review}
+
+\textbf{Continuous} $\times$ \textbf{Categorical}
+
+$$\text{MPG}_i=\beta_0+\beta_1\text{H}_i+\beta_2\text{C}_i+\beta_3(\text{H}_i\times\text{C}_i)$$
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=\beta_0+\beta_1\text{H}_i+\beta_2\text{C}_i^{\text{6}}+\beta_3\text{C}^8+\beta_4(\text{H}_i\times\text{C}_i^6)+\beta_5(\text{H}_i\times\text{C}_i^8)$$
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=\beta_0+\beta_1\text{H}_i+\beta_2\text{C}_i^{\text{6}}+\beta_3\text{C}^8+\beta_4(\text{H}_i\times\text{C}_i^6)+\beta_5(\text{H}_i\times\text{C}_i^8)$$
+
+\tiny
+```{r, echo=F} 
+mod <- lm(mpg~hp*as.factor(cyl), data=mtcars)
+summary(mod)
+```
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(36)+(-0.1)\text{H}_i+(-15)\text{C}_i^{\text{6}}+(-18)\text{C}^8+(0.1)(\text{H}_i\times\text{C}_i^6)+(0.1)(\text{H}_i\times\text{C}_i^8)$$
+
+\tiny
+```{r, echo=F} 
+mod <- lm(mpg~hp*as.factor(cyl), data=mtcars)
+summary(mod)
+```
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(36)+(-0.1)\text{H}_i+(-15)\text{C}_i^{\text{6}}+(-18)\text{C}^8+(0.1)(\text{H}_i\times\text{C}_i^6)+(0.1)(\text{H}_i\times\text{C}_i^8)$$
+
+```{r, echo=F} 
+preds <- predictions(mod, 
+                     condition = c('hp','cyl'), 
+                     newdata = datagrid(hp=50:350,cyl=c(4,6,8)))
+ggplot(data=preds,
+       aes(x=hp,y=estimate,color=as.factor(cyl))) + 
+  geom_line(size=1) + 
+  labs(y='MPG',x='HP',color='Cyl') + 
+  theme_bw()
+```
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Categorical}
+
+\small
+$$\text{MPG}_i=(36)+(-0.1)\text{H}_i+(-15)\text{C}_i^{\text{6}}+(-18)\text{C}^8+(0.1)(\text{H}_i\times\text{C}_i^6)+(0.1)(\text{H}_i\times\text{C}_i^8)$$
+
+* $\beta_1$: Across all cars at the reference level for Cylinder (Cylinder=4), a 1 unit increase in Horsepower is associated with -0.1 lower MPG. 
+* $\beta_2$: Across all cars at the reference level for Horsepower (Horsepower=0), Cylinder=6 is associated with -15 lower MPG. 
+* $\beta_3$: Across all cars at the reference level for Horsepower (Horsepower=0), Cylinder=8 is associated with -18 lower MPG. 
+* $\beta_4$: The association between Horsepower and MPG for Cylinder=4 (-0.1) is 0.1 higher for Cylinder=6. The association between Cylinder=6 and MPG for Horsepower=0 (-15) is 0.1 higher for every 1 unit increase in Horsepower. 
+* $\beta_5$: The association between Horsepower and MPG for Cylinder=4 (-0.1) is 0.1 higher for Cylinder=8. The association between Cylinder=8 and MPG for Horsepower=0 (-18) is 0.1 higher for every 1 unit increase in Horsepower. 
+
+---
+
+\frametitle{Interactions Review}
+
+\textbf{Continuous} $\times$ \textbf{Continuous}
+
+$$\text{MPG}_i=\beta_0+\beta_1\text{H}_i+\beta_2\text{W}_i+\beta_3(\text{H}_i\times\text{W}_i)$$
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Continuous}
+
+\small
+$$\text{MPG}_i=\beta_0+\beta_1\text{H}_i+\beta_2\text{W}_i+\beta_3(\text{H}_i\times\text{W}_i)$$
+
+\tiny
+```{r, echo=F} 
+mod <- lm(mpg~hp*wt, data=mtcars)
+summary(mod)
+```
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Continuous}
+
+\small
+$$\text{MPG}_i=(49.8)+(-0.12)\text{H}_i+(-8.2)\text{W}_i+(0.02)(\text{H}_i\times\text{W}_i)$$
+
+\tiny
+```{r, echo=F} 
+mod <- lm(mpg~hp*wt, data=mtcars)
+summary(mod)
+```
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Continuous}
+
+\small
+$$\text{MPG}_i=(49.8)+(-0.12)\text{H}_i+(-8.2)\text{W}_i+(0.02)(\text{H}_i\times\text{W}_i)$$
+
+```{r, echo=F} 
+preds <- predictions(mod, 
+                     condition = c('hp','wt'), 
+                     newdata = datagrid(hp=50:350,wt=1:5))
+ggplot(data=preds,
+       aes(x=hp,y=estimate,color=as.factor(wt))) + 
+  geom_line(size=1) + 
+  labs(y='MPG',x='HP',color='Weight') + 
+  theme_bw()
+```
+
+---
+
+\textbf{Continuous} $\times$ \textbf{Continuous}
+
+\small
+$$\text{MPG}_i=(49.8)+(-0.12)\text{H}_i+(-8.2)\text{W}_i+(0.02)(\text{H}_i\times\text{W}_i)$$
+
+* $\beta_1$: Across all cars at the reference level for Weight (Weight=0), a 1 unit increase in Horsepower is associated with -0.12 lower MPG. 
+
+* $\beta_2$: Across all cars at the reference level for Horsepower (Horsepower=0), a 1 unit increase in Weight is associated with -8.2 lower MPG. 
+
+* $\beta_3$: The association between Horsepower and MPG for Weight=0 (-0.12) is 0.02 higher for every 1 unit increase in Weight. The association between Weight and MPG for Horsepower=0 (-8.2) is 0.02 higher for every 1 unit increase in Horsepower.
+
+---
+
 \frametitle{Two-way fixed effects}
 
 >- Two-way fixed effects and brief introduction to difference-in-differences.
+
+\tiny
+```{r, echo=F}
+data("Fatalities")
+Fatalities <- as.tibble(Fatalities)
+Fatalities <- Fatalities %>% 
+  mutate(rate = fatal / pop * 100000)
+```
+
+\tiny
+```{r, echo=T}
+summary(feols(rate~beertax | state+year, data=Fatalities))
+```
+
+---
+
+\frametitle{Two-way fixed effects}
+
+\begin{center}
+\includegraphics[width = 0.8\textwidth]{figures/did.png}
+\end{center}
+
+---
+
+\frametitle{Review: Fixed effects}
+
+>- \textbf{Panel data:} A data set where we observe the same units (e.g., individuals, firms, countries, schools) over more than one time period. 
+
+
+>- \textbf{Fixed effects model:} Basically the same thing as controlling for a categorical variable, but the "category" is units.
+>   - Intercept shift by unit.
+>   - Isolates our target comparison to be based on average _within-unit_ variation (i.e., variation over time). 
+>   - From a causal perspective, eliminates all \textbf{time-invariant} confounders.
+
+---
+
+\frametitle{Review: Fixed effects}
+
+Notation:
+
+$$\text{y}_{i,t}=\beta_0+{\beta_1}\text{X}_{i,t}+\beta_2Z+\alpha_i$$
+
+Estimation:
+
+* Fixed effects estimators (modified OLS): \textbf{feols().}
+
+```{r, echo=T, eval=F}
+feols(rate ~ beertax | state, data=Fatalities)
+```
+
+---
+
+\frametitle{Review: Fixed effects}
+
+\textbf{Caveats:}
+
+* \textbf{(1)} Unit-level fixed effects cannot address \textbf{time-variant} unobserved confounding. 
+
+* \textbf{(2)} Unit-level fixed effects can lead to substantial bias if there is strong reverse causality. 
+
+* \textbf{(3)} Including fixed effects isn't just a "better" way to estimate the same comparison; it _changes_ the comparison.
+
+
 
