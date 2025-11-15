@@ -52,6 +52,11 @@ msp_tracts <- get_acs(geography = 'tract',
 
 ## No assignment questions below - but here is an example of how to make a map with our aggregate neighborhood-level data!
 ## Use get_acs() again, but include the geometry=TRUE argument to load as a shapefile. 
+
+all_vars <- load_variables(dataset = 'acs1', year=2023)
+all_vars %>% 
+  filter(grepl('foreign',label))
+
 msp_tracts_shapefile <- get_acs(geography = "tract",
                                 variables = "B19013_001",
                                 state = "MN",
@@ -60,12 +65,21 @@ msp_tracts_shapefile <- get_acs(geography = "tract",
   erase_water() ## This function erases bodies of water from the shapefile. 
 
 ## Plot as a map using geom_sf() from the sf package. 
-ggplot(data=msp_tracts_shapefile,
-       aes(fill=estimate)) + 
-  geom_sf() + 
+
+transit <- read_sf("C:/Users/ngraetz/Downloads/shp_trans_transit_routes/TransitRoutes.shp")
+route2 <- transit %>% 
+  filter(route==2) %>%
+  st_crs()
+
+ggplot() + 
+  geom_sf(data=msp_tracts_shapefile,
+          aes(fill=estimate)) + 
+  geom_sf(data=route2,color='yellow',lwd=1) + 
   scale_fill_viridis_c(option='inferno') + 
   labs(fill='Median household income') + 
   theme_void()
+
+st_intersects(msp_tracts_shapefile,route2)
 
 ## If you want to learn more about spatial data and mapping in R, check out tidycensus here:
 ##    - https://walker-data.com/tidycensus/index.html
