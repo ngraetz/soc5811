@@ -1,0 +1,722 @@
+---
+title: "SOC-5811 Week 12: Assumptions and Diagnostics"
+author: "Nick Graetz"
+date: "11/17/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+set.seed(1234)
+library(AER)
+library(data.table)
+library(knitr)
+library(kableExtra)
+library(arrow)
+library(haven)
+library(ggplot2)
+library(marginaleffects)
+library(tidyverse)
+library(fixest)
+library(cowplot)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE,
+ out.width="80%"
+)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Review: Fixed Effects}
+
+>- What are "fixed effects?" 
+>   - Any predictor we treat as a \textbf{constant, non-random} variable.
+>   - If we control for unit like it's a categorical variable, we are treating it as a random variable.
+>   - If we control for unit with fixed effects (or by manually demeaning), we are treating is as a constant, non-random variable.
+
+>- When is a regression a "fixed effects model?" 
+>   - When we include _at least_ a fixed effect for unit. 
+>   - We can also include lots of other predictors as fixed effects; this is convenient if they have many levels and are simply control variables. 
+
+---
+
+\frametitle{Assumptions of regression}
+
+>- What must we assume when making inferences using regression models?
+
+>- In order of importance: 
+>   - Validity
+>   - Representativeness
+>   - Additivity and linearity
+>   - Independence of errors
+>   - Equal variance of errors
+>   - Normality of errors
+
+---
+
+\frametitle{Assumptions of regression}
+
+\textbf{(1) Validity:} 
+
+>- Outcome measure should accurately reflect the phenomenon of interest.
+>- The model should include all relevant predictors.
+>- The model should generalize to the cases in which is will be applied.
+
+---
+
+\frametitle{Assumptions of regression}
+
+\textbf{(2) Representativeness:}
+
+>- A regression model is fit to data and is used to make inferences about a larger population, hence the implicit assumption in interpreting regression coefficients is that the sample is representative of the population.
+
+---
+
+\frametitle{Assumptions of regression}
+
+\textbf{(3) Additivity and linearity:}
+
+>- The most important mathematical assumption of the linear regression model is that its deterministic component is a linear function of the separate predictors.
+>- If additivity is violated, it might make sense to transform the data or add interactions.
+>- If linearity is violated, perhaps a predictor should be put in as 1/x or log(x) instead of simply linearly.
+>- More on this in \textbf{Week 14}.
+
+---
+
+\frametitle{Assumptions of regression}
+
+\textbf{(4) Independence of errors:}
+
+>- The simple regression model assumes that the errors from the prediction line are independent, an assumption that is violated in time series, spatial, and multilevel settings. 
+
+---
+
+\frametitle{Assumptions of regression}
+
+\textbf{(5) Equal variance of errors:}
+
+>- Unequal error variance (also called heteroscedasticity, in contrast to equal variances, or homoscedasticity) can be an issue when a regression is used for probabilistic prediction.
+
+---
+
+\frametitle{Assumptions of regression}
+
+\textbf{(6) Normality of errors:}
+
+>- The distribution of the error term is relevant when predicting individual data points. For the purpose of estimating the regression line (as compared to predicting individual data points), the assumption of normality is typically barely important at all.
+>- The regression model does _not_ assume or require that predictors be normally distributed.
+
+---
+
+\frametitle{Example}
+
+\includegraphics[page=1,width = 1\textwidth]{images/president.png}
+
+---
+
+\frametitle{Example}
+
+* Validity
+* Representativeness
+* Additivity and linearity
+* Independence of errors
+* Equal variance of errors
+* Normality of errors
+
+--- 
+
+\frametitle{Violations of assumptions}
+
+\textbf{Post-hoc solutions:}
+
+>- Validity: measurement error models.
+>- Representativeness: selection models. 
+>- Linearity: nonadditive and nonlinear models. 
+>- Independence of errors: correlated errors or latent variables. 
+
+--- 
+
+\frametitle{Violations of assumptions}
+
+\textbf{Change the data/model:}
+
+>- Obtaining cleaner data.
+>- Adding more predictors.
+>- Adding interactions.
+>- Transforming predictors. 
+
+--- 
+
+\frametitle{Violations of assumptions}
+
+\textbf{Change the question/interpretation:}
+
+>- Change the research question to align to the data.
+>- Stick to descriptive interpretation that is less causal and does not extrapolate. 
+>- Defining the population to match the sample. 
+
+---
+
+>- \textbf{Epistemology}
+
+\includegraphics[page=1,width = 1\textwidth]{figures/epistemology.pdf}
+
+---
+
+\frametitle{Violations of assumptions}
+
+>- How do we check for violations of our assumptions? 
+
+>- \textbf{Plots.} 
+
+---
+
+\frametitle{Violations of assumptions}
+
+>- Interactions 
+
+```{r, echo=F}
+## Simulate data with interaction
+x <- rnorm(100, mean=10, sd=2)
+z <- c(rep(0,50),rep(1,50))
+y <- 5*x + 5*z + -10*(x*z) + rnorm(100, 0, 5)
+d <- data.table(x=x,z=z,y=y)
+mod <- lm(y~x+z, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y,
+           fill=as.factor(z))) + 
+  geom_point(shape=21,size=2) + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Violations of assumptions}
+
+```{r, echo=F}
+mod <- lm(y~x*z, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y,
+           fill=as.factor(z))) + 
+  geom_point(shape=21,size=2) + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Violations of assumptions}
+
+```{r, echo=F}
+## Simulate data with nonlinear effect
+x <- seq(0, 10, length.out = 100)
+y <- 2 * x^2 - 5 * x + 3 + rnorm(100, 0, 2)
+d <- data.table(x=x,y=y)
+mod <- lm(y~x, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Violations of assumptions}
+
+```{r, echo=F}
+x <- runif(1000, 0, 10)
+y <- 5 + 2*x + rnorm(1000, mean = 0, sd = 0.5 + 0.2 * x)
+d <- data.table(x=x,y=y)
+mod <- lm(y~x, data=d)
+d[, y_hat := predict(mod)]
+d[, residual := y-y_hat]
+ggplot(data=d,
+       aes(x=y_hat,y=residual)) + 
+  geom_point(shape=21,fill='lightgrey',size=2) + 
+  geom_hline(yintercept = 0, color='red',size=1) + 
+  geom_hline(yintercept = sd(d$residual), color='red', linetype='dashed',size=1) + 
+  geom_hline(yintercept = -sd(d$residual), color='red', linetype='dashed',size=1) + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Model comparison}
+
+>- If we want to choose the "best" model specification that relaxes our assumptions above (e.g., transforming a variable), how would we do that?
+
+---
+
+\frametitle{Model comparison}
+
+$$\text{R}^2=1-\left(\frac{\hat{\sigma}^2}{s_y^2}\right)$$
+
+>- We can only compare models fit to the same data; we cannot compare models fit to different data.
+
+>- How would I achieve an $R^2$ of 1 (i.e., perfect prediction)? 
+
+---
+
+\frametitle{Model comparison}
+
+>- Remember connecting every dot? We could design a regression model that makes these predictions. Why do we not do that? 
+
+>- \textbf{Overfitting:} the model is not generalizable outside our particular sample.
+
+>- How do I know if I'm overfitting?
+
+---
+
+\frametitle{External validation}
+
+>- \textbf{External validation}
+
+>- Apply my fitted model to a new dataset measuring the same thing. 
+
+
+\frametitle{Cross-validation}
+
+>- Cross-validation!
+
+--- 
+
+\frametitle{Review}
+
+>- Pick up here on Wednesday. 
+
+---
+
+\frametitle{Cross-validation}
+
+```{r, echo=F}
+x <- seq(1, 100, length.out = 100)
+y <- 5*x + rnorm(100, 0, 100)
+d <- data.table(x=x,y=y)
+mod <- lm(y~x, data=d)
+d[, y_hat := predict(mod)]
+d[, residual := y-y_hat]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Cross-validation}
+
+```{r, echo=F}
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_line(aes(y=y_hat),size=1) +
+  geom_linerange(data=d[residual>=0,],
+                 aes(x=x,ymin=y_hat,ymax=y),
+                 color='red') + 
+  geom_linerange(data=d[residual<0,],
+                 aes(x=x,ymin=y,ymax=y_hat),
+                 color='red') + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Cross-validation}
+
+```{r, echo=F}
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_line(size=1) +
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  theme_bw()
+```
+
+---
+
+\frametitle{Cross-validation}
+
+>- How do we compare the fit of these models? Why can't we just see which model has a higher $R^2$, the proportion of variance in $y$ predicted by each model?
+
+>- $R^2$ only characterizes how well the model predicts _in-sample_ variation, but we really care about how well the model can predict _out-of-sample_ variation.
+
+>- What is "out-of-sample" variation? Variation in $y$ that we did not observe!
+
+---
+
+\frametitle{Cross-validation}
+
+```{r, echo=F}
+x <- seq(1, 100, length.out = 100)
+y <- 5*x + rnorm(100, 0, 100)
+d <- data.table(x=x,y=y)
+cross_ids <- sample(1:100, 20, replace=F)
+mod <- lm(y~x, data=d[!cross_ids,])
+d[, y_hat_ols := predict(mod,newdata=d)]
+d[!cross_ids, y_train := y]
+d[, y_hat_line := approx(x,y_train,x)$y]
+d[cross_ids, residual_ols := y-y_hat_ols]
+d[cross_ids, residual_line := y-y_hat_line]
+gg1 <- ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_line(aes(y=y_hat_ols)) +
+  geom_point(data=d[cross_ids,],shape=21,size=2,fill=NA) + 
+  geom_point(data=d[!cross_ids,],shape=21,size=2,fill='black') + 
+  lims(y=c(-150,650)) + 
+  theme_bw() + 
+  ggtitle('Step 1: Train')
+gg2 <- ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_linerange(data=d[cross_ids & residual_ols>=0,],
+                 aes(x=x,ymin=y_hat_ols,ymax=y),
+                 color='red') + 
+  geom_linerange(data=d[cross_ids & residual_ols<0,],
+                 aes(x=x,ymin=y,ymax=y_hat_ols),
+                 color='red') + 
+  geom_line(aes(y=y_hat_ols)) +
+  geom_point(data=d[cross_ids,],shape=21,size=2,fill=NA) + 
+  lims(y=c(-150,650)) + 
+  theme_bw() + 
+  ggtitle('Step 2: Test')
+gg3 <- ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_line(aes(y=y_hat_line)) +
+  geom_point(data=d[cross_ids,],shape=21,size=2,fill=NA) + 
+  geom_point(data=d[!cross_ids,],shape=21,size=2,fill='black') + 
+  theme_bw() + 
+  ggtitle('Step 1: Train')
+gg4 <- ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_linerange(data=d[cross_ids & residual_line>=0,],
+                 aes(x=x,ymin=y_hat_line,ymax=y),
+                 color='red') + 
+  geom_linerange(data=d[cross_ids & residual_line<0,],
+                 aes(x=x,ymin=y,ymax=y_hat_line),
+                 color='red') + 
+  geom_line(aes(y=y_hat_line)) +
+  geom_point(data=d[cross_ids,],shape=21,size=2,fill=NA) + 
+  theme_bw() + 
+  ggtitle('Step 2: Test')
+plot_grid(gg1,gg2,nrow=1)
+```
+
+---
+
+\frametitle{Cross-validation}
+
+```{r, echo=F}
+plot_grid(gg3,gg4,nrow=1)
+```
+
+---
+
+\frametitle{Cross-validation}
+
+Out-of-sample root mean squared error (OOS RMSE):
+
+* \textbf{OLS:} OOS RMSE = `r round(d[!is.na(residual_ols),sqrt(mean(residual_ols^2))],2)`
+* \textbf{Overfit:} OOS RMSE = `r round(d[!is.na(residual_line),sqrt(mean(residual_line^2))],2)`
+
+---
+
+\frametitle{Cross-validation}
+
+>- Model comparison is always important, but it is particularly important when we care about _prediction_. 
+
+---
+
+\frametitle{Cross-validation}
+
+>- You work as a data scientist at Netflix and have been tasked with predicting what users will watch next. You have access to all users demographics and watch histories. 
+
+---
+
+\frametitle{Cross-validation}
+
+>- You work as a data scientist at Netflix and have been tasked with predicting what users will watch next. You have access to all users demographics and watch histories. 
+
+1. Randomly split data into \textbf{training data} and \textbf{test data}.
+2. Fit various models to \textbf{training data} (basic linear model, generalized linear models, machine learning models: gradient boosting machine, Bayesian additive regression trees, random forest). 
+3. Use models to make predictions for \textbf{test data}. 
+4. Compare fit statistics (e.g., root mean squared error) to select the highest performing model.
+
+---
+
+\frametitle{Cross-validation}
+
+>- \textbf{What do we learn about the relationships between predictors and the outcome when we select the "best" predictive model using cross-validation?}
+>   - Potentially nothing! But that isn't always our goal.
+>- \textbf{Why does one model perform better than another? Does it matter?}
+
+--- 
+
+\frametitle{Multicollinearity}
+
+>- What is it?
+>- How do I know?
+>- When is this a problem?
+>- What should I do?
+>   - Do nothing.
+>   - Drop variables.
+>   - Combine variables (e.g., principal components analysis). 
+
+---
+
+\frametitle{Interactions and Transformations}
+
+* Validity
+* Representativeness
+* Additivity and linearity
+* Independence of errors
+* Equal variance of errors
+* Normality of errors
+
+---
+
+\frametitle{Interactions and Transformations}
+
+* \textbf{Validity}
+* \textbf{Representativeness}
+* Additivity and linearity
+* Independence of errors
+* Equal variance of errors
+* Normality of errors
+
+---
+
+\frametitle{Interactions and Transformations}
+
+* Validity
+* Representativeness
+* \textbf{Additivity and linearity}
+* Independence of errors
+* Equal variance of errors
+* Normality of errors
+
+---
+
+\frametitle{Interactions and Transformations}
+
+>- How do we relax our assumptions around additivity and linearity?
+
+---
+
+\frametitle{Interactions and Transformations}
+
+>- Additivity: add interaction terms.
+
+>- Let's assume we are interested in the causal effect of X on Y, and Z and W are confounders. 
+
+Assume additivity across treatment and confounders: 
+$$y_i=X_i+Z_i+W_i$$
+
+Allow for treatment interaction: 
+$$y_i=X_i+Z_i+(X_i\times Z_i)+W_i$$
+
+Allow for confounder interaction:
+$$y_i=X_i+Z_i+W_i+(Z_i\times W_i)$$
+
+---
+
+\frametitle{Interactions and Transformations}
+
+>- How do we decide whether to include an interaction?
+
+Assume additivity across treatment and confounders: 
+$$y_i=X_i+Z_i+W_i$$
+
+Allow for treatment interaction: 
+$$y_i=X_i+Z_i+(X_i\times Z_i)+W_i$$
+
+Allow for confounder interaction:
+$$y_i=X_i+Z_i+W_i+(Z_i\times W_i)$$
+
+---
+
+\frametitle{Interactions and Transformations}
+
+>- Linearity: transform variables.
+
+>- We aren't talking about _shifting_ or _rescaling_ predictor variables, which changes our interpretation of the coefficients on those variables.
+
+>- We are talking about changing the _functional relationship_ between a predictor variable and the outcome. 
+
+---
+
+\frametitle{Interactions and Transformations}
+
+>- Log-transforming
+
+>- Polynomials
+
+>- Splines
+
+---
+
+\frametitle{Interactions and Transformations}
+
+$$y_i=\beta_0+\beta_1X_i$$
+
+```{r, echo=F}
+x <- seq(0, 10, length.out = 100)
+y <- 2 * x^2 - 5 * x + 3 + rnorm(100, 0, 2)
+d <- data.table(x=x,y=y)
+mod <- lm(y~x, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Interactions and Transformations}
+
+$$y_i=\beta_0+\beta_1X_i+\beta_2X_i^2$$
+
+```{r, echo=F}
+x <- seq(1, 10, length.out = 100)
+# y <- rexp(n = 1000, rate = 20 * x + 3 + rnorm(1000, 0, 3))
+y <- 2 * x^2 - 5 * x + 3 + rnorm(100, 0, 2)
+d <- data.table(x=x,y=y)
+d[, x2 := x^2]
+mod <- lm(y~x+x2, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Interactions and Transformations}
+
+$$y_i=\beta_0+\beta_1\log(X_i)$$
+
+```{r, echo=F}
+x <- seq(1, 10, length.out = 100)
+y <- 10 * log(x) + 3 + rnorm(100, 0, 2)
+d <- data.table(x=x,y=y)
+d[, log_x := log(x)]
+mod <- lm(y~log_x, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Interactions and Transformations}
+
+$$y_i=\beta_0+\beta_1\log(X_i)$$
+\tiny
+```{r, echo=T}
+summary(mod)
+```
+$$\beta_1=10.6$$
+
+---
+
+\frametitle{Interactions and Transformations}
+
+$$y_i=\beta_0+\beta_1\log(X_i)$$
+
+$$\beta_1=10.6$$
+
+Interpretation:
+
+>- A one-unit increase in ln(X) is associated with a 10.6 increase in Y. 
+>- A 1% increase in X is associated with a .106 increase in Y. 
+
+---
+
+\frametitle{Interactions and Transformations}
+
+```{r, echo=F}
+x <- seq(1, 10, length.out = 100)
+y <- rlnorm(n = 1000, meanlog = x, sdlog = 0.3)
+y[y==0] <- 0
+d <- data.table(x=x,y=y)
+hist(y)
+```
+
+---
+
+\frametitle{Interactions and Transformations}
+
+$$y_i=\beta_0+\beta_1(X_i)$$
+
+```{r, echo=F}
+d[, log_x := log(x)]
+d[, log_y := log(y)]
+mod <- lm(y~x, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Interactions and Transformations}
+
+$$\log(y_i)=\beta_0+\beta_1(X_i)$$
+
+```{r, echo=F}
+d[, log_x := log(x)]
+d[, log_y := log(y)]
+mod <- lm(log_y~x, data=d)
+d[, y_hat := exp(predict(mod))]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Interactions and Transformations}
+
+>- Why would we do this? 
+
+>- Avoid negative predictions for an continuous outcome variable that is bounded at 0. 
+
+>- If we think the relationship between X and Y is multiplicative rather than additive. 
