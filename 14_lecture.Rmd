@@ -1,0 +1,507 @@
+---
+title: "SOC-5811 Week 14: Transformations"
+author: "Nick Graetz"
+date: "12/1/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+set.seed(1234)
+library(AER)
+library(data.table)
+library(knitr)
+library(kableExtra)
+library(arrow)
+library(haven)
+library(ggplot2)
+library(marginaleffects)
+library(tidyverse)
+library(fixest)
+library(cowplot)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE,
+ out.width="80%"
+)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Transformations}
+
+>- How do we relax our assumptions around additivity and linearity?
+>   - Additivity: add interactions.
+>   - Linearity: transform variables.
+
+>- What does "relax" mean in this context? 
+>   - Rule of thumb: Inferences made with simpler models rely on _more_ assumptions.
+
+---
+
+\frametitle{Transformations}
+
+$$\text{Happiness}_i=\beta_0+\beta_1\text{Income}_i$$
+
+Say I want to use this model to infer whether people with 150k are happier, on average, than people with 50k. 
+
+\textbf{What assumption does this inference rely on?}
+
+---
+
+\frametitle{Transformations}
+
+\textbf{What are "transformations?"}
+
+>- We aren't talking about _shifting_ or _rescaling_ predictor variables, which changes our interpretation of the coefficients on those variables.
+
+>- We are talking about changing the _functional relationship_ between a predictor variable and the outcome. 
+
+---
+
+\frametitle{Transformations}
+
+>- Log-transforming
+
+>- Polynomials
+
+>- Splines
+
+---
+
+\frametitle{Transformations}
+
+$$y_i=\beta_0+\beta_1X_i$$
+
+```{r, echo=F}
+x <- seq(0, 10, length.out = 100)
+y <- 2 * x^2 - 5 * x + 3 + rnorm(100, 0, 2)
+d <- data.table(x=x,y=y)
+mod <- lm(y~x, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+$$y_i=\beta_0+\beta_1X_i+\beta_2X_i^2$$
+
+```{r, echo=F}
+x <- seq(1, 10, length.out = 100)
+# y <- rexp(n = 1000, rate = 20 * x + 3 + rnorm(1000, 0, 3))
+y <- 2 * x^2 - 5 * x + 3 + rnorm(100, 0, 2)
+d <- data.table(x=x,y=y)
+d[, x2 := x^2]
+mod <- lm(y~x+x2, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+$$y_i=\beta_0+\beta_1\log(X_i)$$
+
+```{r, echo=F}
+x <- seq(1, 10, length.out = 100)
+y <- 10 * log(x) + 3 + rnorm(100, 0, 2)
+d <- data.table(x=x,y=y)
+d[, log_x := log(x)]
+mod <- lm(y~log_x, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+$$y_i=\beta_0+\beta_1\log(X_i)$$
+\tiny
+```{r, echo=T}
+summary(mod)
+```
+$$\beta_1=9.6$$
+
+---
+
+\frametitle{Transformations}
+
+$$y_i=\beta_0+\beta_1\log(X_i)$$
+
+$$\beta_1=9.6$$
+
+Interpretation:
+
+>- A one-unit increase in ln(X) is associated with a 9.6 increase in Y. 
+>- A 1% increase in X is associated with a .096 increase in Y. 
+
+---
+
+\frametitle{Transformations}
+
+```{r, echo=F}
+x <- seq(1, 10, length.out = 100)
+y <- rlnorm(n = 1000, meanlog = x, sdlog = 0.3)
+y[y==0] <- 0
+d <- data.table(x=x,y=y)
+hist(y)
+```
+
+---
+
+\frametitle{Transformations}
+
+$$y_i=\beta_0+\beta_1(X_i)$$
+
+```{r, echo=F}
+d[, log_x := log(x)]
+d[, log_y := log(y)]
+mod <- lm(y~x, data=d)
+d[, y_hat := predict(mod)]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+$$\log(y_i)=\beta_0+\beta_1(X_i)$$
+
+```{r, echo=F}
+d[, log_x := log(x)]
+d[, log_y := log(y)]
+mod <- lm(log_y~x, data=d)
+d[, y_hat := exp(predict(mod))]
+ggplot(data=d,
+       aes(x=x,
+           y=y)) + 
+  geom_point(shape=21,size=2,fill='lightgrey') + 
+  geom_line(aes(y=y_hat),size=1) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+\textbf{Why would we do this?} 
+
+>- Avoid negative predictions for an continuous outcome variable that is bounded at 0. 
+
+>- If we think the relationship between X and Y is multiplicative rather than additive. 
+
+---
+
+\frametitle{Transformations}
+
+>- \textbf{Only the dependent/response variable is log-transformed.} Exponentiate the coefficient. This gives the multiplicative factor for every one-unit increase in the independent variable. 
+
+>- \textbf{Only independent/predictor variable(s) is log-transformed.} Divide the coefficient by 100. This tells us that a 1% increase in the independent variable increases (or decreases) the dependent variable by (coefficient/100) units.
+
+---
+
+\frametitle{Transformations}
+
+>- \textbf{Both dependent/response variable and independent/predictor variable(s) are log-transformed.} Interpret the coefficient as the percent increase in the dependent variable for every 1% increase in the independent variable.
+
+---
+
+\frametitle{Transformations}
+
+>- Log-transforming
+
+>- Polynomials
+
+>- \textbf{Splines}
+
+---
+
+\frametitle{Transformations}
+
+```{r, echo=F}
+library(lspline)
+x <- seq(from = 0, to = 6, by = .025)
+y <- sin(2*x) + x -.1*x^2 + 2 + rnorm(length(x), sd = .3)
+d <- data.table(x,y)
+```
+
+```{r, echo=T}
+mod <- lm(y~x, data=d)
+```
+
+```{r, echo=F}
+preds_ols <- predictions(mod,by='x')
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) + 
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+```{r, echo=T}
+mod <- lm(y~lspline(x,knots=3), data=d)
+```
+
+```{r, echo=F}
+preds <- predictions(mod,by='x')
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+\tiny
+```{r, echo=F}
+summary(mod)
+```
+
+---
+
+\frametitle{Transformations}
+
+```{r, echo=T}
+mod <- lm(y~lspline(x,knots=c(1,2,4)), data=d)
+```
+
+```{r, echo=F}
+preds <- predictions(mod,by='x')
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+```{r, echo=T}
+mod <- lm(y~pspline(x,degree=1), data=d)
+```
+
+```{r, echo=F}
+preds_linear <- predictions(mod,by='x')
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_linear,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_linear,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+```{r, echo=T}
+mod <- lm(y~pspline(x,degree=3), data=d)
+```
+
+```{r, echo=F}
+preds_cubic <- predictions(mod,by='x')
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_cubic,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_cubic,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+Penalized cubic splines
+
+```{r, echo=F}
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_cubic,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_cubic,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+Which model do we like? Linear or penalized cubic spline?
+
+```{r, echo=F}
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_cubic,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_cubic,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+\tiny
+```{r, echo=F}
+summary(mod)
+```
+
+---
+
+\frametitle{Transformations}
+
+```{r, echo=F}
+x <- seq(from = 0, to = 6, by = .025)
+y <- sin(2*x) + x -.1*x^2 + 2 + rnorm(length(x), sd = 2)
+d <- data.table(x,y)
+mod <- lm(y~x, data=d)
+preds_linear <- predictions(mod,by='x')
+mod <- lm(y~pspline(x,degree=3), data=d)
+preds_cubic <- predictions(mod,by='x')
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_cubic,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_cubic,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+```{r, echo=F}
+x <- 1:100
+y <- 3*x + rnorm(100,mean=0,sd=25)
+d <- data.table(x,y)
+mod <- lm(y~x, data=d)
+preds_linear <- predictions(mod,by='x')
+mod <- lm(y~pspline(x,degree=3), data=d)
+preds_cubic <- predictions(mod,by='x')
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_linear,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_linear,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_cubic,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_cubic,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+>- Splines vs. polynomials
+
+```{r, echo=F}
+x <- seq(1, 10, length.out = 100)
+y <- 2 * x^2 - 5 * x + 3 + rnorm(100, 0, 5)
+d <- data.table(x=x,y=y)
+d[, x2 := x^2]
+mod <- lm(y~x+x2, data=d)
+preds_poly <- predictions(mod,by='x')
+mod <- lm(y~pspline(x,degree=3), data=d)
+preds_cubic <- predictions(mod,by='x')
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_poly,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_poly,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_cubic,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_cubic,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+>- \textbf{Quiz:} I'm interesting in the effect of $X$ (i.e., $\beta_1$), and $Z$ is a potential confounder. Inference on $\beta_1$ requires more assumptions in which of these models?
+
+$$y_i=\beta_0+\beta_1X_i+\beta_2Z_i$$
+
+$$y_i=\beta_0+\beta_1X_i+\beta_2S(Z_i)$$
+
+>- \textbf{Rule of thumb:} Inferences made with simpler models rely on _more_ assumptions.
+
+---
+
+\frametitle{Transformations}
+
+>- \textbf{Quiz:} If we want to relax our assumptions of additivity and linearity as much as possible, why not just use splines for all continuous variables and include all interactions?
+
+>- There are models out there besides the conventional linear model that basically do this!
+>   - How do they handle the complexity vs. overfitting tradeoff? Cross-validation.
+
+---
+
+\frametitle{Transformations}
+
+\textbf{Why do we sometimes prefer simpler models?}
+
+>- We want parameter estimates that are easy to interpret.
+>   - This is the weakest reason, because we can always just use conditional/marginal predictions for our inferences even if the model is very complicated in the parameters. 
+>   - But it is also the reason that has historically driven the use of simpler models; it is very easy to estimate the linear regression coefficient.
+
+>- We care about summarizing with average effects. 
+
+>- We can demonstrate that our assumptions (e.g., linearity) do not substantively impact our conclusions. 
