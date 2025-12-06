@@ -239,6 +239,12 @@ ggplot(data=d,
 
 \frametitle{Transformations}
 
+>- Pick up here on Wednesday
+
+---
+
+\frametitle{Transformations}
+
 >- Log-transforming
 
 >- Polynomials
@@ -397,6 +403,8 @@ ggplot(data=d,
 
 \frametitle{Transformations}
 
+Cons of spline: interpretation of coefficients
+
 \tiny
 ```{r, echo=F}
 summary(mod)
@@ -405,6 +413,8 @@ summary(mod)
 ---
 
 \frametitle{Transformations}
+
+>- Splines vs. linear
 
 ```{r, echo=F}
 x <- seq(from = 0, to = 6, by = .025)
@@ -427,6 +437,42 @@ ggplot(data=d,
 ---
 
 \frametitle{Transformations}
+
+>- What do we think? Which model do we prefer?
+
+```{r, echo=F}
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_cubic,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_cubic,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+>- What do we notice about the confidence intervals on the predictions?
+
+```{r, echo=F}
+ggplot(data=d,
+       aes(x=x,y=y)) + 
+  geom_point() + 
+  geom_line(data=preds_ols,aes(x=x,y=estimate), color='black', size=1) +
+  geom_ribbon(data=preds_ols,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='black', alpha=0.3) +
+  geom_line(data=preds_cubic,aes(x=x,y=estimate), color='red', size=1) +
+  geom_ribbon(data=preds_cubic,aes(x=x,y=estimate,ymin=conf.low,ymax=conf.high), fill='red', alpha=0.3) +
+  theme_bw()
+```
+
+---
+
+\frametitle{Transformations}
+
+>- Splines vs. linear
 
 ```{r, echo=F}
 x <- 1:100
@@ -475,17 +521,49 @@ ggplot(data=d,
 
 \frametitle{Transformations}
 
->- \textbf{Quiz:} I'm interesting in the effect of $X$ (i.e., $\beta_1$), and $Z$ is a potential confounder. Inference on $\beta_1$ requires more assumptions in which of these models?
+\textbf{Causal inference: Transforming the treatment variable}
 
-$$y_i=\beta_0+\beta_1X_i+\beta_2Z_i$$
+>- \textbf{Quiz:} I'm interested in the effect of Income (i.e., $\beta_1$), and Age is a potential confounder. Inference on $\beta_1$ requires more assumptions in which of these models?
 
-$$y_i=\beta_0+\beta_1X_i+\beta_2S(Z_i)$$
+$$\text{Happy}_i=\beta_0+\beta_1\text{Income}_i$$
 
->- \textbf{Rule of thumb:} Inferences made with simpler models rely on _more_ assumptions.
+$$\text{Happy}_i=\beta_0+\beta_1\text{Income}_i+\beta_2\text{Age}_i$$
+
+$$\text{Happy}_i=\beta_0+\beta_1S(\text{Income}_i)+\beta_2\text{Age}_i$$
 
 ---
 
 \frametitle{Transformations}
+
+\textbf{Causal inference: Transforming the treatment variable}
+
+>- \textbf{Quiz:} I'm interested in the effect of Income (i.e., $\beta_1$), and Age is a potential confounder. Inference on $\beta_1$ requires more assumptions in which of these models?
+
+\textbf{Heterogenous treatment effects / Moderation}
+
+$$\text{Happy}_i=\beta_0+\beta_1S(\text{Income}_i)+\beta_2\text{Age}_i$$
+
+$$\text{Happy}_i=\beta_0+\beta_1\text{Income}_i+\beta_2\text{Age}_i+\beta_3(\text{Income}_i\times\text{Age}_i)$$
+
+---
+
+\frametitle{Transformations}
+
+\textbf{Causal inference: Transforming the confounder variable}
+
+>- \textbf{Quiz:} I'm interested in the effect of Income (i.e., $\beta_1$), and Age is a potential confounder. Inference on $\beta_1$ requires more assumptions in which of these models?
+
+$$\text{Happy}_i=\beta_0+\beta_1\text{Income}_i$$
+
+$$\text{Happy}_i=\beta_0+\beta_1\text{Income}_i+\beta_2\text{Age}_i$$
+
+$$\text{Happy}_i=\beta_0+\beta_1\text{Income}_i+\beta_2S(\text{Age}_i)$$
+
+---
+
+\frametitle{Transformations}
+
+>- \textbf{Rule of thumb:} Inferences made with simpler models rely on _more_ assumptions.
 
 >- \textbf{Quiz:} If we want to relax our assumptions of additivity and linearity as much as possible, why not just use splines for all continuous variables and include all interactions?
 
@@ -505,3 +583,40 @@ $$y_i=\beta_0+\beta_1X_i+\beta_2S(Z_i)$$
 >- We care about summarizing with average effects. 
 
 >- We can demonstrate that our assumptions (e.g., linearity) do not substantively impact our conclusions. 
+
+---
+
+\frametitle{Review}
+
+We have different techniques for \textbf{transformations} of continuous variables.
+
+>- Logs
+>- Polynomials
+>- Splines
+
+---
+
+\frametitle{Review}
+
+When do we think about \textbf{transforming} continuous variables or including \textbf{interactions}?
+
+>- \textbf{Predictive model}
+>   - Try everything and use cross-validation to see if it improves out-of-sample fit.
+
+>- \textbf{Causal model}
+>   - Examining heterogeneous treatment effects (transform/interact the treatment variable).
+>   - Relaxing assumptions about confounding pathways (transform/interact the confounder variables).
+
+---
+
+\frametitle{Review}
+
+>- Writing up a quantitative paper.
+
+---
+
+\frametitle{Housekeeping}
+
+>- I need to move class next Monday (12/8) onto Zoom; I will send an invite link.
+
+>- The Student Rating of Teaching data collection window is open and closes next Wednesday (12/10); the link is on the menu on the left of Canvas. 
