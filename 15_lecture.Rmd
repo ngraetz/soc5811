@@ -1,0 +1,266 @@
+---
+title: "SOC-5811 Week 15: What have we learned?"
+author: "Nick Graetz"
+date: "12/8/2025"
+output: 
+    beamer_presentation:
+        incremental: false
+        includes: 
+            in_header: Minnesota.tex
+---
+
+```{r setup, include=FALSE}
+set.seed(1234)
+library(AER)
+library(data.table)
+library(knitr)
+library(kableExtra)
+library(arrow)
+library(haven)
+library(ggplot2)
+library(marginaleffects)
+library(tidyverse)
+library(fixest)
+library(cowplot)
+knitr::opts_chunk$set(
+ fig.width = 6,
+ fig.height = 4,
+ warning = FALSE, 
+ message = FALSE,
+ out.width="80%"
+)
+dropbox <- 'C:/Users/ncgra/Dropbox/'
+fig_dir <- paste0(dropbox, 'Minnesota/repos/soc5811/figures/')
+```
+
+---
+
+\frametitle{Review: Big Picture}
+
+What is the point of building a model?
+
+>- \textbf{Prediction} 
+
+>- \textbf{Comparison}
+
+---
+
+\frametitle{Review: Big Picture}
+
+>- \textbf{Regression is a mathematical tool for making predictions.}
+
+>- Regression coefficients can always be interpreted as average comparisons of predictions.
+
+>- Regression coefficients can sometimes be interpreted as effects.
+
+---
+
+\frametitle{Review: Big Picture}
+
+\includegraphics[page=1,width = 1\textwidth]{figures/epistemology.pdf}
+
+---
+
+\frametitle{Review: Big Picture}
+
+>- Generalization:
+>   - \textbf{Constructs:} Do our measures generalize to concepts?
+>   - \textbf{Target population:} Does our sample generalize to the population?
+>   - \textbf{Forecasting:} Does our model of the present generalize to the future?
+>   - \textbf{Causal inference:} Does our comparison generalize to a causal effect?
+
+---
+
+\frametitle{Review: Big Picture}
+
+What do we need in order to interpret our comparison as a causal effect?
+
+>- \textbf{Internal validity} (e.g., exchangeability)
+
+>- \textbf{External validity} (e.g., transportability)
+
+---
+
+\frametitle{Review: Models}
+
+What does it mean to "build" a model?
+
+---
+
+\frametitle{Review: Models}
+
+>- \textbf{Estimand:} What is my goal? What is my target comparison I want to infer something about? Example: I want to know if income varies by education, conditional on age.
+
+>- \textbf{Estimator:} How do I relate my population estimand to real sample data in a way that let's me identify its _most likely_ value given that sample data? 
+
+>- \textbf{Estimation:} How do I optimize my estimator (i.e., calculate the most likely value of my estimand)? 
+
+---
+
+\frametitle{Review: Models}
+
+1. \textbf{Estimand:} Choose a functional form for the model and highlight the target parameter ("estimand").
+
+$$y_i=\beta_0+\boxed{\beta_1}{x_i}+\epsilon_i$$
+
+2. \textbf{Estimator:} Choose an estimator that relates the model to real observed data (e.g., OLS) and is unbiased, consistent, and efficient.
+
+$$\text{Sum of squared residuals}=\sum_{i=1}^n (y_i-\widehat{\beta_0}-\widehat{\beta_1}x_i)^2$$
+
+3. \textbf{Estimation:} Estimate parameters by optimizing the estimator; sometimes this can be done analytically, sometimes it requires brute computational force.
+
+---
+
+\frametitle{Review: Statistical Inference}
+
+>- Our models consist of a set of \textbf{parameters:} the unknown numbers (random variables) that determine a statistical model.
+
+>- We often want to do \textbf{statistical inference} on these parameters because they represent comparisons that map to our research questions. 
+
+>- This involves \textbf{uncertainty}. 
+
+---
+
+\frametitle{Review: Statistical Inference}
+
+>- Estimate the \textbf{standard error} based on the concept of the \textbf{sampling distribution.}
+>   - The standard error depends on sample variability and sample size. 
+
+>- How do we estimate the standard error?
+>   - Analytic approach: formulas.
+>   - Simulation approach: bootstrapping.
+
+---
+
+\frametitle{Review: Statistical Inference}
+
+>- For inference, we use the \textbf{p-value:} the probability that the null model would produce a parameter estimate as extreme as your observed estimate if the null model is correct.
+
+>- Our convention is that a p-value of less than 0.05 represents "statistical significance." 
+
+---
+
+\frametitle{Review: Causal Inference}
+
+>- \textbf{Why might we want to add multiple predictors to our models?}
+>   - We want to isolate a more specific comparison (e.g., age standardization).
+>   - We want to estimate a causal effect, so we control for confounders.
+
+---
+
+\frametitle{Review: Causal Inference}
+
+>- The fundamental problem of causal inference.
+>   - We can only ever see one outcome at one time for any given unit, even though they have multiple _potential outcomes_. 
+
+>- We can attempt to estimate \textbf{average treatment effects} by predicting potential outcomes. 
+
+---
+
+\frametitle{Review: Causal Inference}
+
+>- \textbf{Causal inference is a prediction problem:} we must predict potential outcomes using average observed outcomes from exchangeable units.
+
+>- The regression model is one way of generating the predictions needed to estimate the ATE.
+
+---
+
+\frametitle{Review: Causal Inference}
+
+>- \textbf{Confounder:} any variable that affect both the likelihood of treatment and likelihood of outcome.
+
+>- \textbf{Mediator:} any variable on the causal pathway between treatment and outcome.
+
+>- \textbf{Moderator:} any variable that affects the relationship between treatment and outcome. 
+
+---
+
+\frametitle{Review: Panel Data}
+
+>- \textbf{Panel data:} A data set where we observe the same units (e.g., individuals, firms, countries, schools) over more than one time period. 
+
+>- New estimator: fixed effects. 
+
+>- Fixed effects for the unit of analysis removes time-invariant confounding. 
+
+>- Do I care about within- or between-unit variation for my research question?
+
+---
+
+\frametitle{Review: Assumptions}
+
+Key assumptions:
+
+* Validity
+* Representativeness
+* \textbf{Additivity and linearity}
+* Independence of errors
+* Equal variance of errors
+* Normality of errors
+
+---
+
+\frametitle{Review: Assumptions}
+
+>- Linear transformations
+>   - Shifting (i.e., add/subtract a constant)
+>   - Rescaling (i.e., multiply/divide by a constant)
+
+---
+
+\frametitle{Review: Assumptions}
+
+>- Non-linear transformations
+>   - Logs
+>   - Polynomials
+>   - Splines
+
+---
+
+\frametitle{Review: Assumptions}
+
+When do we think about \textbf{transforming} continuous variables or including \textbf{interactions}?
+
+>- \textbf{Predictive model}
+>   - Try everything and use cross-validation to see if it improves out-of-sample fit.
+
+>- \textbf{Causal model}
+>   - Examining heterogeneous treatment effects (transform/interact the treatment variable).
+>   - Relaxing assumptions about confounding pathways (transform/interact the confounder variables).
+
+---
+
+\frametitle{Applied Quantitative Research}
+
+>- Steps for an applied quantitative research project
+
+---
+
+\frametitle{Applied Quantitative Research}
+
+>- \textbf{(1)} Read the literature. What do we know? What do we not know? Draw a conceptual model to guide your research question.
+
+>- \textbf{(2)} Familiarize yourself with the data. Can we use existing data? Do we need new data?
+
+>- \textbf{(3)} Refine conceptual model into a DAG (this may include drawing the "causal field") that is specific about measurement of _constructs_ and definition of _target population_. 
+
+>- \textbf{(4)} Specify the _estimand_ that answers your research question. In other words, choose a functional form for the model and highlight your target parameter (e.g., $\beta_1$).
+
+---
+
+\frametitle{Applied Quantitative Research}
+
+>- \textbf{(5)} Load data into R. Make descriptive summary statistics and plots. Revisit Steps 1-4 as needed.
+
+>- \textbf{(6)} Choose estimator (e.g., OLS) and fit model. 
+
+>- \textbf{(7)} Test for non-linearity and non-additivity in the relationship between treatment and outcome. 
+
+---
+
+\frametitle{Review}
+
+>- Wednesday (12/10): What have we not learned?
+
+>- Please complete the Student Rating of Teaching on the menu on the left of Canvas (due 12/10). 
+
