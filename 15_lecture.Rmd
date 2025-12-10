@@ -264,3 +264,97 @@ When do we think about \textbf{transforming} continuous variables or including \
 
 >- Please complete the Student Rating of Teaching on the menu on the left of Canvas (due 12/10). 
 
+---
+
+\frametitle{Review}
+
+Pick up here Wednesday.
+
+---
+
+\frametitle{Why should we understand quantitative methods (and coding)?}
+
+>- \textbf{There is some inherent value.} Quantitative methods can provide empirical, falsifiable facts about the social world (but not what those facts mean!); for example, how did different groups vote in 2024, and was this different from how those groups voted in 2020?
+
+>- \textbf{They will be used in your field.} You will have to understand and critique quantitative studies, even if they are outside the methodology you use in your own research.
+
+>- \textbf{Non-academic careers.}
+
+>- \textbf{Organizing/advocacy.}
+
+---
+
+\frametitle{Quantitative methods}
+
+>- \textbf{Empiricism:} social theories imply empirical claims that are falsifiable.
+
+>- Data doesn't speak for itself; it must be carefully interpreted, summarize, and analyzed.
+
+---
+
+\frametitle{Review}
+
+Spirling & Stewart (2025): Inference to best explanation (IBE). 
+
+"Research contributions therefore fall into three overlapping types:  the generation of explanations, the production of facts, and the updating of explanations in  light of those facts."
+
+---
+
+\frametitle{Review}
+
+"We emphasize three ideas:
+
+>- First, IBE often involves the  bringing together of multiple pieces of evidence: e.g. many different regressions in various  places, in addition to a qualitative case study on a potential mechanism.
+
+>- Second, explanation  is obviously vital to the practice of IBE, and should be taken as seriously as inference is.
+
+>- Third, that exploratory analysis, because it encourages the development of explanations, is  similarly crucial and currently undervalued."
+
+---
+
+\frametitle{Review}
+
+\begin{center}
+\includegraphics[page=1,width = 0.6\textwidth]{images/eviction_nyt.png}
+\end{center}
+
+---
+
+\frametitle{Review}
+
+\begin{center}
+\includegraphics[page=1,width = 0.4\textwidth]{images/cross.jpg}
+\end{center}
+
+---
+
+\frametitle{What have we not learned?}
+
+>- Non-linear regression models (i.e., generalized linear models, or GLMs) (\textbf{SOC 8811})
+
+>- Causal inference (\textbf{SOC 8890})
+>   - Advanced \textbf{confounder control} methods (e.g., matching, weighting, g-methods). 
+>   - Advanced \textbf{instrument-based} methods (e.g., IVs, diff-in-diff). 
+
+---
+
+\frametitle{What have we not learned?}
+
+>- Statistical inference
+
+>- Survey design
+
+>- Advanced predictive models (i.e., "machine learning")
+
+>- Free online resources outside of classes 
+
+---
+
+\frametitle{Introduction to the course}
+
+>- It’s easy to feel totally overwhelmed and totally behind. Quantitative methods can seem like a huge list of rules that you just don't "get" - and have no hope of ever understanding. \textbf{This is not true.}
+
+>- Norms, computation standards, etc. 
+
+>- Generating knowledge is hard no matter what methods we use to do it. 
+
